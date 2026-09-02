@@ -41,7 +41,9 @@ Or click **Import** on [vercel.com/new](https://vercel.com/new) after the GitHub
 2. Optional: GitHub OAuth app → `AUTH_GITHUB_ID` / `AUTH_GITHUB_SECRET` (callback `https://<prod>/api/auth/callback/github`).
 3. Share `/join/DESK12`. Friends pick a handle. No Spawn box. No Mira default.
 
-See `docs/GROWTH.md` for the full loop (identity, OG cards, lock-in cards, Grok wire).
+See `docs/GROWTH.md` for the growth loop. See `docs/LAUNCH.md` for Kalshi/Polymarket research, venue connectors, monetization, and the launch checklist.
+
+External tape (no login): `/wire` and `GET /api/wire/venues`.
 
 ## What you can click
 

@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
-    "seed": "node --experimental-strip-types -e \"import { resetState } from './src/lib/store.ts'; await resetState(); console.log('seeded');\""
+    "seed": "node --experimental-strip-types -e \"import { resetState } from './src/lib/store.ts'; await resetState(); console.log('seeded');\"",
+    "wire": "node scripts/pull-venues.mjs"
   },
   "dependencies": {
     "@vercel/blob": "^2.8.0",

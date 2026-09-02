@@ -5,6 +5,7 @@ import { HudClock } from "./HudClock";
 const LINKS = [
   ["/", "FLY"],
   ["/call-sheet", "SHEET"],
+  ["/wire", "VENUES"],
   ["/markets", "BOOK"],
   ["/leagues", "DESKS"],
   ["/leaderboard", "RANK"],
