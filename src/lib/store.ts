@@ -7,6 +7,8 @@ import {
   head,
   put,
 } from "@vercel/blob";
+import { hasDatabaseUrl } from "./db/client";
+import { loadPostgres, PostgresConflictError, writePostgres } from "./db/persist";
 import { hasDueResolves, tickResolves } from "./engine";
 import { migrate } from "./migrate";
 import { buildSeed } from "./seed";
@@ -19,25 +21,32 @@ const ACCESS = "private" as const;
 
 const g = globalThis as unknown as { __sparkboard?: State };
 
-export type StoreKind = "file" | "blob";
+export type StoreKind = "file" | "blob" | "postgres";
 
 export function storeKind(): StoreKind {
   if (process.env.SPARKBOARD_STORE === "file") return "file";
+  if (process.env.SPARKBOARD_STORE === "postgres") return "postgres";
+  if (process.env.SPARKBOARD_STORE === "blob") return "blob";
+  if (hasDatabaseUrl()) return "postgres";
   if (process.env.BLOB_READ_WRITE_TOKEN || process.env.BLOB_STORE_ID) return "blob";
   return "file";
 }
 
 function assertProdStore() {
-  if (process.env.VERCEL && storeKind() !== "blob") {
+  if (process.env.VERCEL && storeKind() === "file") {
     throw new Error(
-      "Sparkboard on Vercel needs a private Blob store. In the project: Storage → Create → Blob (Private), or `vercel blob create-store sparkboard --access private --yes`.",
+      "Sparkboard on Vercel needs Postgres (DATABASE_URL) or a private Blob store. Set SPARKBOARD_STORE=postgres or attach Blob.",
     );
   }
 }
 
+function ready(s: State) {
+  return ensureSportsMarkets(migrate(s));
+}
+
 export async function loadState(): Promise<State> {
   assertProdStore();
-  const s = storeKind() === "blob" ? await loadBlob() : await loadFile();
+  const s = await loadRaw();
   if (!hasDueResolves(s)) return s;
   return mutate((st) => {
     tickResolves(st);
@@ -45,9 +54,18 @@ export async function loadState(): Promise<State> {
   });
 }
 
+async function loadRaw(): Promise<State> {
+  const kind = storeKind();
+  if (kind === "postgres") return loadPg();
+  if (kind === "blob") return loadBlob();
+  return loadFile();
+}
+
 export async function mutate<T>(fn: (s: State) => T): Promise<T> {
   assertProdStore();
-  if (storeKind() === "blob") return mutateBlob(fn);
+  const kind = storeKind();
+  if (kind === "postgres") return mutatePg(fn);
+  if (kind === "blob") return mutateBlob(fn);
   const s = await loadFile();
   const result = fn(s);
   s.updatedAt = new Date().toISOString();
@@ -58,7 +76,12 @@ export async function mutate<T>(fn: (s: State) => T): Promise<T> {
 
 export async function resetState(): Promise<State> {
   const seeded = ensureSportsMarkets(buildSeed());
-  if (storeKind() === "blob") {
+  const kind = storeKind();
+  if (kind === "postgres") {
+    await writePostgres(seeded, null);
+    return seeded;
+  }
+  if (kind === "blob") {
     await writeBlob(seeded);
     return seeded;
   }
@@ -67,11 +90,44 @@ export async function resetState(): Promise<State> {
   return seeded;
 }
 
+async function loadPg(): Promise<State> {
+  const loaded = await loadPostgres();
+  if (!loaded) {
+    const seeded = ensureSportsMarkets(buildSeed());
+    await writePostgres(seeded, null);
+    return seeded;
+  }
+  return ready(loaded.state);
+}
+
+async function mutatePg<T>(fn: (s: State) => T): Promise<T> {
+  let lastErr: unknown;
+  for (let i = 0; i < 8; i++) {
+    const loaded = await loadPostgres();
+    const version = loaded?.version ?? null;
+    const s = loaded ? ready(loaded.state) : ensureSportsMarkets(buildSeed());
+    const result = fn(s);
+    s.updatedAt = new Date().toISOString();
+    try {
+      await writePostgres(s, version);
+      return result;
+    } catch (e) {
+      if (e instanceof PostgresConflictError) {
+        lastErr = e;
+        await new Promise((r) => setTimeout(r, 40 * (i + 1)));
+        continue;
+      }
+      throw e;
+    }
+  }
+  throw lastErr instanceof Error ? lastErr : new Error("Sparkboard store is busy; retry the ticket");
+}
+
 async function loadFile(): Promise<State> {
   if (g.__sparkboard) return g.__sparkboard;
   try {
     const raw = await fs.readFile(FILE, "utf8");
-    g.__sparkboard = ensureSportsMarkets(migrate(JSON.parse(raw) as State));
+    g.__sparkboard = ready(JSON.parse(raw) as State);
     return g.__sparkboard;
   } catch (e) {
     if ((e as NodeJS.ErrnoException).code !== "ENOENT") throw e;
@@ -95,7 +151,7 @@ async function loadBlob(): Promise<State> {
     return seeded;
   }
   const text = await new Response(result.stream).text();
-  return ensureSportsMarkets(migrate(JSON.parse(text) as State));
+  return ready(JSON.parse(text) as State);
 }
 
 async function writeBlob(s: State, etag?: string) {
@@ -111,8 +167,8 @@ async function writeBlob(s: State, etag?: string) {
 
 async function currentEtag(): Promise<string | undefined> {
   try {
-    const meta = await head(BLOB_PATH);
-    return meta.etag;
+    const metaHead = await head(BLOB_PATH);
+    return metaHead.etag;
   } catch (e) {
     if (e instanceof BlobNotFoundError) return undefined;
     throw e;

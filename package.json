@@ -10,12 +10,17 @@
     "test": "vitest run",
     "seed": "node --experimental-strip-types -e \"import { resetState } from './src/lib/store.ts'; await resetState(); console.log('seeded');\"",
     "wire": "node scripts/pull-venues.mjs",
-    "sports": "node scripts/fetch-sports.mjs"
+    "sports": "node scripts/fetch-sports.mjs",
+    "db:push": "drizzle-kit push",
+    "db:import": "node --experimental-strip-types scripts/import-db.ts"
   },
   "dependencies": {
+    "@sentry/nextjs": "^10.73.0",
     "@vercel/blob": "^2.8.0",
+    "drizzle-orm": "^0.45.2",
     "next": "16.3.4",
     "next-auth": "^5.0.0-beta.32",
+    "postgres": "^3.4.9",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "resend": "^6.25.0"
@@ -26,6 +31,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "babel-plugin-react-compiler": "1.0.0",
+    "drizzle-kit": "^0.31.10",
     "eslint": "^9",
     "eslint-config-next": "16.3.4",
     "tailwindcss": "^4",

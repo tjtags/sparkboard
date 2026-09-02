@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { hasDatabaseUrl } from "@/lib/db/client";
 import { devSwitcherEnabled } from "@/lib/flags";
 import { storeKind } from "@/lib/store";
 
@@ -12,6 +13,8 @@ export async function GET() {
     grok: Boolean(process.env.XAI_API_KEY),
     resend: Boolean(process.env.RESEND_API_KEY),
     admin: Boolean(process.env.SPARKBOARD_ADMIN_SECRET || process.env.SPARKBOARD_ADMIN_EMAIL),
+    sentry: Boolean(process.env.SENTRY_DSN),
+    db: hasDatabaseUrl(),
     switcher: devSwitcherEnabled(),
   });
 }

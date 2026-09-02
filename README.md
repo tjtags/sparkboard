@@ -41,7 +41,9 @@ Or click **Import** on [vercel.com/new](https://vercel.com/new) after the GitHub
 2. Optional: GitHub OAuth app → `AUTH_GITHUB_ID` / `AUTH_GITHUB_SECRET` (callback `https://<prod>/api/auth/callback/github`).
 3. Share `/join/DESK12`. Friends pick a handle. No Spawn box. No Mira default.
 
-See `docs/GROWTH.md` for the growth loop. See `docs/LAUNCH.md` for Kalshi/Polymarket research, venue connectors, monetization, and the launch checklist.
+See `docs/GROWTH.md` for the growth loop. See `docs/LAUNCH.md` for Kalshi/Polymarket research, venue connectors, monetization, and the launch checklist. Open work is itemized at [`docs/BACKLOG.md`](./docs/BACKLOG.md) and [github.com/tjtags/sparkboard/issues](https://github.com/tjtags/sparkboard/issues).
+
+Sentry and Postgres are wired but **dark** until you set `SENTRY_DSN` / `DATABASE_URL`. Local stays `SPARKBOARD_STORE=file`. After a Neon URL: `npm run db:push` then `npm run db:import`.
 
 External tape (no login): `/wire` and `GET /api/wire/venues`.
 
