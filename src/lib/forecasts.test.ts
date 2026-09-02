@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { forecastsCsv, publicForecasts } from "./forecasts";
-import { buildSeed } from "./seed";
+import { buildSeed, printSeedTape } from "./seed";
 
 describe("public forecasts", () => {
   it("exports board-eligible Public Square books and drops the coin-flip", () => {
-    const s = buildSeed();
+    const s = printSeedTape(buildSeed());
     const rows = publicForecasts(s, "https://sparkboard.example");
     expect(rows.some((r) => r.id === "mkt_house")).toBe(true);
     expect(rows.some((r) => r.id === "mkt_coinflip")).toBe(false);

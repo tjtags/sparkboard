@@ -2,6 +2,7 @@ import { DESK_USER_ID, PUBLIC_LEAGUE_ID } from "./constants";
 import { devSwitcherEnabled } from "./flags";
 import { boardPnL, integrityOf, markToMarket, realizedAndOpen } from "./engine";
 import { prices } from "./lmsr";
+import { isoWeekKey, weekBounds } from "./lockin-week";
 import { currentNflWeek } from "./sports";
 import type { Category, IntegrityReport, Market, State, User } from "./types";
 
@@ -46,7 +47,22 @@ export function cheapPrice(m: Market) {
   return { ...m, prices: prices(m.q, m.b, m.pi) };
 }
 
-export function thisWeekSlate(s: State, now = new Date()) {
+export function thisWeekSlate(s: State, now = new Date(), sport: "nfl" | "nba" | "mlb" = "nfl") {
+  const mvp = s.markets.find((m) => m.id === "mkt_sb-lxi-mvp");
+  if (sport !== "nfl") {
+    const { startsAt, locksAt } = weekBounds(isoWeekKey(now));
+    const t0 = new Date(startsAt).getTime();
+    const t1 = new Date(locksAt).getTime();
+    const games = s.markets
+      .filter((m) => {
+        if (m.status !== "open" || m.sport !== sport) return false;
+        const t = new Date(m.closesAt).getTime();
+        return t >= t0 && t <= t1;
+      })
+      .sort((a, b) => a.closesAt.localeCompare(b.closesAt))
+      .map(cheapPrice);
+    return { week: isoWeekKey(now), games, mvp: mvp ? cheapPrice(mvp) : undefined };
+  }
   const week = currentNflWeek(now);
   const games = s.markets
     .filter(
@@ -57,7 +73,6 @@ export function thisWeekSlate(s: State, now = new Date()) {
     )
     .sort((a, b) => a.closesAt.localeCompare(b.closesAt))
     .map(cheapPrice);
-  const mvp = s.markets.find((m) => m.id === "mkt_sb-lxi-mvp");
   return { week, games, mvp: mvp ? cheapPrice(mvp) : undefined };
 }
 
@@ -83,6 +98,10 @@ export type BoardRow = {
   rank: number;
   beatPct: number;
 };
+
+export function marketVolume(s: State, marketId: string) {
+  return s.trades.filter((t) => t.marketId === marketId).reduce((a, t) => a + t.cost, 0);
+}
 
 export function leaderboard(s: State, leagueId: string): BoardRow[] {
   const members = s.memberships.filter((m) => m.leagueId === leagueId);

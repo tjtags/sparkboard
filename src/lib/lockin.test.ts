@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { edgePoints, isoWeekKey, setLockInPick, settlePicksForMarket } from "./lockin";
+import { STARTING_BANKROLL } from "./constants";
+import { edgePoints, isoWeekKey, setLockInPick, settlePicksForMarket, sitMissedCards } from "./lockin";
 import { buildSeed } from "./seed";
 
 describe("lock-in", () => {
@@ -24,5 +25,15 @@ describe("lock-in", () => {
 
   it("prints an ISO week key", () => {
     expect(isoWeekKey(new Date("2026-09-02T12:00:00Z"))).toMatch(/^2026-W\d{2}$/);
+  });
+
+  it("sits a Sunday desk that missed the lock", () => {
+    const s = buildSeed();
+    const n = sitMissedCards(s, new Date("2026-09-06T23:59:59.999Z"));
+    expect(n).toBeGreaterThan(0);
+    const sit = s.lockInPicks.find((p) => p.userId === "user_anjali" && p.status === "void");
+    expect(sit?.edge).toBe(0);
+    const cash = s.memberships.find((m) => m.userId === "user_anjali" && m.leagueId === "league_sunday")!.cash;
+    expect(cash).toBe(STARTING_BANKROLL);
   });
 });

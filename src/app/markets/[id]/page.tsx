@@ -8,7 +8,7 @@ import { canChallenge, canResolve } from "@/lib/engine";
 import { actorId } from "@/lib/http";
 import { ensureMarketById } from "@/lib/sports";
 import { loadState, mutate } from "@/lib/store";
-import { currentUser, priceMarket, tape } from "@/lib/views";
+import { currentUser, marketVolume, priceMarket, tape } from "@/lib/views";
 
 export const dynamic = "force-dynamic";
 
@@ -34,6 +34,8 @@ export default async function MarketPage({ params }: { params: Promise<{ id: str
     }
   }
   const prints = tape(s, market.id, 16);
+  const vol = marketVolume(s, market.id);
+  const mark = Object.values(holdings).reduce((a, n) => a + n, 0);
   const depth = [0.6, 0.7, 0.8, 0.9].map((t) => ({
     t,
     ...costToPrice(market.q, market.b, 0, t, market.pi),
@@ -55,8 +57,12 @@ export default async function MarketPage({ params }: { params: Promise<{ id: str
           <p className="mt-2 text-[13px] text-muted">
             Resolves: {market.resolutionCriteria}
           </p>
-          <div className="mt-4">
+          <div className="mt-4 flex flex-wrap items-center gap-3 text-[12px] text-muted">
             <IntegrityChip report={market.integrity} />
+            <span className="tabular">VOL ✦{Math.round(vol).toLocaleString()}</span>
+            <span className="tabular">{prints.length} PRINTS</span>
+            {mem && <span className="tabular text-spark">CASH ✦{formatSparks(mem.cash)}</span>}
+            {mark > 0 && <span className="tabular">HELD {mark.toFixed(1)}</span>}
           </div>
           <ul className="mt-6 space-y-3">
             {market.outcomes.map((o, i) => (
@@ -126,7 +132,12 @@ export default async function MarketPage({ params }: { params: Promise<{ id: str
               holdings={holdings}
             />
           ) : (
-            <p className="text-muted">Join this league to trade.</p>
+            <p className="text-muted">
+              Make a desk to trade.{" "}
+              <a href="/join/SUNDAY" className="text-spark">
+                /join/SUNDAY
+              </a>
+            </p>
           )}
           {market.status === "closed" && market.pendingOutcomeId && (
             <div className="hairline rounded-lg p-4 text-[13px]">

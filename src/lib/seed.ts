@@ -155,7 +155,7 @@ export function buildSeed(): State {
         { id: "o0", name: "Yes — Democrats" },
         { id: "o1", name: "No — GOP holds" },
       ],
-      pi: normalize([0.62, 0.38]),
+      pi: normalize([0.5, 0.5]),
       b,
       createdBy: DESK_USER_ID,
       closesAt: close,
@@ -176,7 +176,7 @@ export function buildSeed(): State {
         { id: "o0", name: "Yes — GOP holds" },
         { id: "o1", name: "No — Democrats flip" },
       ],
-      pi: normalize([0.57, 0.43]),
+      pi: normalize([0.5, 0.5]),
       b,
       createdBy: DESK_USER_ID,
       closesAt: close,
@@ -196,7 +196,7 @@ export function buildSeed(): State {
         { id: "o0", name: "Collins holds" },
         { id: "o1", name: "Democrat flips" },
       ],
-      pi: normalize([0.48, 0.52]),
+      pi: normalize([0.5, 0.5]),
       b: 50_000,
       createdBy: DESK_USER_ID,
       closesAt: close,
@@ -215,7 +215,7 @@ export function buildSeed(): State {
         { id: "o0", name: "Democrats win" },
         { id: "o1", name: "Republicans hold" },
       ],
-      pi: normalize([0.38, 0.62]),
+      pi: normalize([0.5, 0.5]),
       b: 60_000,
       createdBy: DESK_USER_ID,
       closesAt: close,
@@ -234,7 +234,7 @@ export function buildSeed(): State {
         { id: "o0", name: "Husted holds" },
         { id: "o1", name: "Democrat flips" },
       ],
-      pi: normalize([0.54, 0.46]),
+      pi: normalize([0.5, 0.5]),
       b: 45_000,
       createdBy: DESK_USER_ID,
       closesAt: close,
@@ -254,7 +254,7 @@ export function buildSeed(): State {
         { id: "o0", name: "Yes, above 3%" },
         { id: "o1", name: "No, 3% or below" },
       ],
-      pi: normalize([0.41, 0.59]),
+      pi: normalize([0.5, 0.5]),
       b: 40_000,
       createdBy: DESK_USER_ID,
       closesAt: "2026-12-31T23:59:00.000Z",
@@ -294,7 +294,7 @@ export function buildSeed(): State {
         { id: "o0", name: "Stays live" },
         { id: "o1", name: "Someone mutes it" },
       ],
-      pi: normalize([0.35, 0.65]),
+      pi: normalize([0.5, 0.5]),
       b: DEFAULT_B.friends,
       createdBy: "user_anjali",
       closesAt: "2026-10-31T23:59:00.000Z",
@@ -302,6 +302,12 @@ export function buildSeed(): State {
     }),
   ];
 
+  s.updatedAt = nowish();
+  return s;
+}
+
+/** Fixture tape for tests only. Live books start empty so your ticket is the first print. */
+export function printSeedTape(s: State) {
   const buys: Array<[string, string, string, number]> = [
     ["user_mira", "mkt_house", "o0", 22000],
     ["user_cole", "mkt_house", "o1", 14000],
@@ -330,12 +336,9 @@ export function buildSeed(): State {
     ["user_mira", "mkt_chat", "o0", 6000],
     ["user_cole", "mkt_chat", "o1", 5000],
   ];
-
   for (const [userId, marketId, outcomeId, amount] of buys) {
     applyTrade(s, { userId, marketId, outcomeId, side: "buy", amount, mode: "spend" });
   }
-
-  s.updatedAt = nowish();
   return s;
 }
 

@@ -30,6 +30,7 @@ export function TradeTicket({
   const [amount, setAmount] = useState("4000");
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [last, setLast] = useState<string | null>(null);
 
   const i = Math.max(0, outcomes.findIndex((o) => o.id === outcomeId));
   const spend = Number(amount) || 0;
@@ -63,6 +64,12 @@ export function TradeTicket({
     if (!res.ok) {
       setErr(data.error ?? "Trade failed");
       return;
+    }
+    const t = data.trade as { cost: number; avgPrice: number; pricesAfter: number[] } | undefined;
+    if (t) {
+      setLast(
+        `filled ✦${Math.round(t.cost).toLocaleString()} @ ${(t.avgPrice * 100).toFixed(1)}¢ → ${(t.pricesAfter[i] * 100).toFixed(1)}¢`,
+      );
     }
     router.refresh();
   }
@@ -123,6 +130,7 @@ export function TradeTicket({
           </>
         )}
       </div>
+      {last && <p className="mt-2 text-[12px] text-spark">{last}</p>}
       {err && <p className="mt-2 text-sm text-no">{err}</p>}
       <button
         disabled={busy || !quote}

@@ -9,6 +9,7 @@ import {
 } from "@vercel/blob";
 import { hasDatabaseUrl } from "./db/client";
 import { loadPostgres, PostgresConflictError, writePostgres } from "./db/persist";
+import { needsSit, sitMissedCards } from "./lockin";
 import { hasDueResolves, tickResolves } from "./engine";
 import { migrate } from "./migrate";
 import { buildSeed } from "./seed";
@@ -47,9 +48,10 @@ function ready(s: State) {
 export async function loadState(): Promise<State> {
   assertProdStore();
   const s = await loadRaw();
-  if (!hasDueResolves(s)) return s;
+  if (!hasDueResolves(s) && !needsSit(s)) return s;
   return mutate((st) => {
     tickResolves(st);
+    sitMissedCards(st);
     return st;
   });
 }

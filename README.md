@@ -69,7 +69,9 @@ Season book: `npm run sports` refreshes `data/sports-catalog.json` from the ESPN
 | `/forecasts` | Board-eligible Public Square tape (JSON/CSV at `/api/public/forecasts`) |
 | `/legal` | Play-money terms and privacy |
 
-Share `/join/SUNDAY` for the weekly NFL desk. Spawn a desk in the top bar, or trade as Mira / Cole / Anjali. On `/wire`, OPEN lists a play-money book with the venue yes as prior.
+Trade empty books at `/play`. Make a desk at `/join/SUNDAY`. Share `/join/SUNDAY` for the weekly NFL desk.
+
+Connections for Cursor: [`docs/CONNECTIONS.md`](./docs/CONNECTIONS.md). Spawn a desk in the top bar, or trade as Mira / Cole / Anjali. On `/wire`, OPEN lists a play-money book with the venue yes as prior.
 
 ## Rules of the game
 

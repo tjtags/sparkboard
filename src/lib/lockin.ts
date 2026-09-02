@@ -142,3 +142,51 @@ export function edgePoints(pLock: number, hit: boolean) {
   const edge = hit ? 1 - pLock : -pLock;
   return Math.round(edge * 100);
 }
+
+export function needsSit(s: State, now = new Date()) {
+  const week = isoWeekKey(now);
+  if (now.toISOString() < weekBounds(week).locksAt) return false;
+  for (const league of s.leagues) {
+    if (!league.sportSeason || (league.cardMode ?? "off") === "off") continue;
+    for (const mem of s.memberships.filter((m) => m.leagueId === league.id)) {
+      const user = s.users.find((u) => u.id === mem.userId);
+      if (!user || user.system) continue;
+      const has = s.lockInPicks.some((p) => p.userId === user.id && p.leagueId === league.id && p.week === week);
+      if (!has) return true;
+    }
+  }
+  return false;
+}
+
+/** After this week's lock, season-desk members with no pick sit the week. Sparks do not move. */
+export function sitMissedCards(s: State, now = new Date()) {
+  const week = isoWeekKey(now);
+  const { locksAt } = weekBounds(week);
+  if (now.toISOString() < locksAt) return 0;
+  let n = 0;
+  for (const league of s.leagues) {
+    if (!league.sportSeason) continue;
+    if ((league.cardMode ?? "off") === "off") continue;
+    for (const mem of s.memberships.filter((m) => m.leagueId === league.id)) {
+      const user = s.users.find((u) => u.id === mem.userId);
+      if (!user || user.system) continue;
+      const has = s.lockInPicks.some((p) => p.userId === user.id && p.leagueId === league.id && p.week === week);
+      if (has) continue;
+      s.lockInPicks.push({
+        id: nid("sit"),
+        userId: user.id,
+        leagueId: league.id,
+        week,
+        marketId: "mkt_sit",
+        outcomeId: "sit",
+        pLock: 0,
+        status: "void",
+        edge: 0,
+        createdAt: now.toISOString(),
+        updatedAt: now.toISOString(),
+      });
+      n += 1;
+    }
+  }
+  return n;
+}

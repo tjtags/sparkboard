@@ -17,7 +17,9 @@ export default async function HomePage() {
   const headline =
     fly.find((m) => m.id === "mkt_sb-lxi-mvp") ?? fly.find((m) => m.featured) ?? fly[0];
   const sheet = callSheet(s).slice(0, 8);
-  const board = leaderboard(s, PUBLIC_LEAGUE_ID).slice(0, 8);
+  const board = leaderboard(s, PUBLIC_LEAGUE_ID)
+    .filter((r) => r.user.authKind !== "seed")
+    .slice(0, 8);
   const prints = tape(s, undefined, 10);
   const depth = headline
     ? costToPrice(headline.q, headline.b, 0, Math.min(0.9, headline.prices[0] + 0.05), headline.pi)

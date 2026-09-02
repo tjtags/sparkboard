@@ -11,18 +11,18 @@ import {
   resolveMarket,
   tickResolves,
 } from "./engine";
-import { buildSeed, emptyState } from "./seed";
+import { buildSeed, emptyState, printSeedTape } from "./seed";
 
 describe("seeded square", () => {
   it("House market clears the unique-trader gate", () => {
-    const s = buildSeed();
+    const s = printSeedTape(buildSeed());
     const r = integrityOf(s, "mkt_house");
     expect(r.uniqueTraders).toBeGreaterThanOrEqual(5);
     expect(r.boardEligible).toBe(true);
   });
 
   it("coin-flip sybil book is not board-eligible", () => {
-    const s = buildSeed();
+    const s = printSeedTape(buildSeed());
     const r = integrityOf(s, "mkt_coinflip");
     expect(r.uniqueTraders).toBe(2);
     expect(r.boardEligible).toBe(false);
@@ -44,7 +44,7 @@ describe("seeded square", () => {
   });
 
   it("claws farmed PnL off the board after a thin resolve", () => {
-    const s = buildSeed();
+    const s = printSeedTape(buildSeed());
     const t0 = new Date("2026-09-02T12:00:00Z");
     resolveMarket(s, "user_desk", "mkt_coinflip", "o0", { now: t0 });
     expect(s.markets.find((m) => m.id === "mkt_coinflip")?.status).toBe("closed");
@@ -77,7 +77,7 @@ describe("oracle", () => {
   });
 
   it("holds Public Square payout for 24h unless challenged", () => {
-    const s = buildSeed();
+    const s = printSeedTape(buildSeed());
     const t0 = new Date("2026-09-02T12:00:00Z");
     resolveMarket(s, "user_desk", "mkt_house", "o0", { now: t0, sourceUrl: "https://ap.org" });
     const house = s.markets.find((m) => m.id === "mkt_house")!;

@@ -14,10 +14,16 @@ import { currentUser, thisWeekSlate } from "@/lib/views";
 
 export const dynamic = "force-dynamic";
 
-export default async function WeekPage() {
+export default async function WeekPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ league?: string }>;
+}) {
+  const sp = await searchParams;
+  const sport = sp.league === "nba" || sp.league === "mlb" ? sp.league : "nfl";
   const s = await loadState();
   const me = currentUser(s, (await actorId()) ?? undefined);
-  const { week, games, mvp } = thisWeekSlate(s);
+  const { week, games, mvp } = thisWeekSlate(s, new Date(), sport);
   const sunday = s.leagues.find((l) => l.id === SUNDAY_LEAGUE_ID);
   const inSunday = Boolean(
     me && s.memberships.some((m) => m.userId === me.id && m.leagueId === SUNDAY_LEAGUE_ID),
@@ -43,7 +49,20 @@ export default async function WeekPage() {
 
   return (
     <Shell here="/week">
-      <Kicker>WEEK {week} // NFL // PLAY-MONEY</Kicker>
+      <Kicker>
+        WEEK {week} // {sport.toUpperCase()} // PLAY-MONEY
+      </Kicker>
+      <div className="mt-2 flex gap-2 text-[11px] tracking-widest">
+        {(["nfl", "nba", "mlb"] as const).map((l) => (
+          <Link
+            key={l}
+            href={l === "nfl" ? "/week" : `/week?league=${l}`}
+            className={sport === l ? "text-spark" : "text-muted"}
+          >
+            {l.toUpperCase()}
+          </Link>
+        ))}
+      </div>
       <h1 className="mt-2 text-3xl tracking-tight">This week&apos;s card</h1>
       <p className="mt-2 max-w-2xl text-[13px] text-muted">
         One lock-in from this slate, with your friends, through the last game. Points vs the
