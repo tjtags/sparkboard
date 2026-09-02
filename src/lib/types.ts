@@ -1,7 +1,7 @@
 export type LeagueKind = "global" | "friends";
 export type MarketStatus = "open" | "closed" | "resolved";
 export type Category = "politics" | "sports" | "macro" | "culture" | "science" | "meta";
-export type AuthKind = "github" | "guest" | "seed" | "system";
+export type AuthKind = "github" | "guest" | "email" | "seed" | "system";
 export type CardMode = "points" | "off";
 export type CardPool = "league" | "league+public";
 export type LockInStatus = "open" | "locked" | "hit" | "miss" | "void";
@@ -17,6 +17,9 @@ export type User = {
   githubId?: string;
   githubLogin?: string;
   avatarUrl?: string;
+  email?: string;
+  emailVerifiedAt?: string;
+  bio?: string;
 };
 
 export type League = {
@@ -125,6 +128,24 @@ export type JoinProbe = {
   ok: boolean;
 };
 
+export type EmailChallenge = {
+  email: string;
+  tokenHash: string;
+  handle?: string;
+  invite?: string;
+  exp: string;
+  at: string;
+};
+
+export type DeskMessage = {
+  id: string;
+  fromId: string;
+  toId?: string;
+  leagueId?: string;
+  body: string;
+  at: string;
+};
+
 export type IntegrityReport = {
   marketId: string;
   uniqueTraders: number;
@@ -157,5 +178,7 @@ export type State = {
   wireDrafts: WireDraft[];
   spawnEvents: SpawnEvent[];
   joinProbes: JoinProbe[];
+  emailChallenges: EmailChallenge[];
+  messages: DeskMessage[];
   updatedAt: string;
 };

@@ -13,63 +13,52 @@ export default async function CallSheetPage() {
 
   return (
     <Shell here="/call-sheet">
-      <div className="rounded-lg bg-paper px-6 py-8 text-ink md:px-10">
-        <Kicker>
-          <span className="text-copper">Sparkboard desk · 2 September 2026</span>
-        </Kicker>
-        <h1 className="display mt-2 text-4xl text-ink">Politics call sheet</h1>
-        <p className="mt-2 max-w-2xl text-[15px] text-ink/70">
-          Morning printout. Implied probabilities from the LMSR book, not polls. Nov 3
-          general. Senate toss-ups on the NYT sheet: Alaska, Iowa, Maine, Michigan, Ohio,
-          Texas. House: 21 toss-ups as of Aug 26.
+      <div className="tick border border-line bg-ink/70 p-6">
+        <Kicker>SHEET // {new Date().toISOString().slice(0, 10)}</Kicker>
+        <h1 className="mt-2 text-3xl tracking-tight">Politics bus</h1>
+        <p className="mt-2 max-w-2xl text-[13px] text-muted">
+          Implied LMSR, not polls. Nov 3 general. This is an instrument, not a campaign.
         </p>
-        <table className="mt-8 w-full text-left text-sm">
-          <thead className="text-[11px] uppercase tracking-[0.16em] text-copper">
+        <table className="mt-6 w-full text-left text-[13px]">
+          <thead className="text-[10px] tracking-[0.2em] text-muted">
             <tr>
               <th className="py-2">#</th>
-              <th>Market</th>
-              <th>Implied</th>
-              <th>b</th>
-              <th>Integrity</th>
+              <th>CONTRACT</th>
+              <th>PX</th>
+              <th>B</th>
+              <th>GATE</th>
             </tr>
           </thead>
           <tbody>
             {rows.map((m, i) => (
-              <tr key={m.id} className="border-t border-ink/10">
-                <td className="py-3 tabular">{i + 1}</td>
-                <td className="py-3 pr-4">
-                  <Link href={`/markets/${m.id}`} className="hover:underline">
+              <tr key={m.id} className="border-t border-line">
+                <td className="py-2 tabular text-muted">{String(i + 1).padStart(2, "0")}</td>
+                <td className="pr-4">
+                  <Link href={`/markets/${m.id}`} className="hover:text-spark">
                     {m.question}
                   </Link>
                 </td>
-                <td className="tabular font-medium">{formatPct(m.prices[0], 1)}</td>
+                <td className="tabular text-spark">{formatPct(m.prices[0], 1)}</td>
                 <td className="tabular">{m.b.toLocaleString()}</td>
-                <td>
-                  <span className="text-[12px]">
-                    {m.integrity.boardEligible ? "clears" : "thin"} · {m.integrity.uniqueTraders} desks
-                  </span>
+                <td className="text-[11px] text-muted">
+                  {m.integrity.boardEligible ? "CLEAR" : "THIN"} · {m.integrity.uniqueTraders}
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
-        <p className="mt-8 max-w-2xl text-[13px] text-ink/60">
-          Sources mixed into the seed: NYT midterms tracker (updated Aug 26, 2026), Cook
-          ratings moving Texas and Iowa to toss-up, Ballotpedia battleground list, AP
-          election calendar (Nov 3). This is a game book, not a forecast product.
-        </p>
       </div>
       {s.wireDrafts[0] && (
-        <div className="mt-8">
-          <Kicker>Wire · {s.wireDrafts[0].source}</Kicker>
+        <div className="mt-6">
+          <Kicker>WIRE · {s.wireDrafts[0].source.toUpperCase()}</Kicker>
           <ul className="mt-3 space-y-2">
             {s.wireDrafts[0].questions.map((q) => (
               <li key={q}>
                 <Link
                   href={`/markets/new?question=${encodeURIComponent(q)}`}
-                  className="text-sm text-spark hover:underline"
+                  className="text-[13px] text-spark hover:underline"
                 >
-                  List this: {q}
+                  LIST · {q}
                 </Link>
               </li>
             ))}
@@ -77,18 +66,12 @@ export default async function CallSheetPage() {
         </div>
       )}
       <form action="/api/desk/suggest" method="post" className="mt-8 max-w-xl">
-        <Kicker>Wire · optional Grok scrape</Kicker>
-        <p className="mt-2 text-sm text-muted">
-          If <code className="text-spark">XAI_API_KEY</code> is set, Grok drafts new politics
-          questions from a topic. Otherwise you get the canned midterm wire.
-        </p>
+        <Kicker>DRAFT WIRE</Kicker>
         <div className="mt-3 flex gap-2">
-          <input
-            name="topic"
-            defaultValue="2026 US midterms"
-            className="field"
-          />
-          <button className="rounded-md bg-spark px-3 py-2 text-sm text-ink">Draft</button>
+          <input name="topic" defaultValue="2026 US midterms" className="field" />
+          <button className="border border-spark px-3 py-2 text-[11px] tracking-widest text-spark">
+            RUN
+          </button>
         </div>
       </form>
     </Shell>

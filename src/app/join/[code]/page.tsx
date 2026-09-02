@@ -1,4 +1,5 @@
 import { Kicker } from "@/components/Bits";
+import { EmailForm } from "@/components/EmailForm";
 import { JoinForm } from "@/components/JoinForm";
 import { Shell } from "@/components/Shell";
 import { actorId } from "@/lib/http";
@@ -22,7 +23,7 @@ export default async function JoinPage({ params }: { params: Promise<{ code: str
   return (
     <Shell here="/leagues">
       <Kicker>Invite</Kicker>
-      <h1 className="display mt-2 text-4xl">Join {league.name}</h1>
+      <h1 className="mt-2 text-3xl tracking-tight">Join {league.name}</h1>
       <p className="mt-2 max-w-xl text-muted">
         Play-money. You get ✦1,000,000 in this league. Sparks never leave it. This is a
         game, not gambling.
@@ -38,7 +39,15 @@ export default async function JoinPage({ params }: { params: Promise<{ code: str
           </button>
         </form>
       )}
-      {!me && <JoinForm invite={league.inviteCode ?? code} leagueName={league.name} />}
+      {!me && (
+        <>
+          <JoinForm invite={league.inviteCode ?? code} leagueName={league.name} />
+          <div className="mt-8">
+            <Kicker>OR CONFIRM EMAIL</Kicker>
+            <EmailForm invite={league.inviteCode} />
+          </div>
+        </>
+      )}
     </Shell>
   );
 }

@@ -58,6 +58,8 @@ export function emptyState(): State {
     wireDrafts: [],
     spawnEvents: [],
     joinProbes: [],
+    emailChallenges: [],
+    messages: [],
     updatedAt: T0,
   };
 }

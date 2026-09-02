@@ -37,16 +37,18 @@ export type BoardRow = {
   pnl: number;
   boardPnl: number;
   cash: number;
+  rank: number;
+  beatPct: number;
 };
 
 export function leaderboard(s: State, leagueId: string): BoardRow[] {
   const members = s.memberships.filter((m) => m.leagueId === leagueId);
-  const rows: BoardRow[] = [];
+  const raw: Omit<BoardRow, "rank" | "beatPct">[] = [];
   for (const mem of members) {
     const user = s.users.find((u) => u.id === mem.userId);
     if (!user || user.system) continue;
     const { equity, pnl } = realizedAndOpen(s, user.id, leagueId);
-    rows.push({
+    raw.push({
       user,
       equity,
       pnl,
@@ -54,7 +56,18 @@ export function leaderboard(s: State, leagueId: string): BoardRow[] {
       cash: mem.cash,
     });
   }
-  return rows.sort((a, b) => b.boardPnl - a.boardPnl);
+  const sorted = raw.sort((a, b) => b.boardPnl - a.boardPnl);
+  const n = sorted.length;
+  return sorted.map((r, i) => ({
+    ...r,
+    rank: i + 1,
+    beatPct: n <= 1 ? 100 : ((n - (i + 1)) / (n - 1)) * 100,
+  }));
+}
+
+export function deskByHandle(s: State, handle: string) {
+  const h = handle.toLowerCase();
+  return s.users.find((u) => u.handle === h && !u.system) ?? null;
 }
 
 export function userPositions(s: State, userId: string, leagueId: string) {

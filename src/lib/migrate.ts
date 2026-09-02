@@ -6,6 +6,8 @@ export function migrate(raw: State): State {
   s.wireDrafts ??= [];
   s.spawnEvents ??= [];
   s.joinProbes ??= [];
+  s.emailChallenges ??= [];
+  s.messages ??= [];
   for (const u of s.users as User[]) {
     if (!u.authKind) {
       u.authKind = u.system ? "system" : "seed";

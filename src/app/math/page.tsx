@@ -10,7 +10,7 @@ export default function MathPage() {
   return (
     <Shell here="/math">
       <Kicker>Hanson 2003 · LMSR</Kicker>
-      <h1 className="display mt-2 text-4xl">The maker</h1>
+      <h1 className="mt-2 text-3xl tracking-tight">The maker</h1>
       <p className="mt-3 max-w-2xl text-muted">
         Sparkboard uses Robin Hanson&apos;s logarithmic market scoring rule. Prices are
         always a probability distribution. The operator&apos;s worst day is known up front:{" "}

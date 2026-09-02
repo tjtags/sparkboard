@@ -9,7 +9,7 @@ export async function mintGuestJwt(userId: string) {
     token: {
       sub: userId,
       sparkUserId: userId,
-      authKind: "guest",
+      authKind: "email",
     },
     secret,
     salt,

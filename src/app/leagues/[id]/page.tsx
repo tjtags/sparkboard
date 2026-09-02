@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Kicker, SparkAmt } from "@/components/Bits";
+import { Compose } from "@/components/Compose";
 import { CopyInviteButton } from "@/components/CopyInviteButton";
 import { LockInCard } from "@/components/LockInCard";
 import { MarketCard } from "@/components/MarketCard";
@@ -42,7 +43,7 @@ export default async function LeaguePage({ params }: { params: Promise<{ id: str
   return (
     <Shell here="/leagues">
       <Kicker>{league.kind} league · week {week}</Kicker>
-      <h1 className="display mt-2 text-4xl">{league.name}</h1>
+      <h1 className="mt-2 text-3xl tracking-tight">{league.name}</h1>
       <p className="mt-2 max-w-xl text-muted">{league.blurb}</p>
 
       {inLeague && inviteUrl && (
@@ -130,9 +131,29 @@ export default async function LeaguePage({ params }: { params: Promise<{ id: str
             ))}
             {books.length === 0 && <p className="text-muted">No open books yet.</p>}
           </div>
-          <Link href="/markets/new" className="mt-4 inline-block text-sm text-copper">
-            Open a market here →
+          <Link href="/markets/new" className="mt-4 inline-block text-[11px] tracking-widest text-spark">
+            [+] BOOK
           </Link>
+          {inLeague && (
+            <div className="mt-8">
+              <Kicker>LEAGUE COMMS</Kicker>
+              <ul className="mt-2 max-h-64 space-y-2 overflow-auto text-[12px]">
+                {s.messages
+                  .filter((m) => m.leagueId === league.id)
+                  .slice(-20)
+                  .reverse()
+                  .map((m) => {
+                    const from = s.users.find((u) => u.id === m.fromId);
+                    return (
+                      <li key={m.id} className="border border-line p-2">
+                        <span className="text-spark">@{from?.handle}</span> {m.body}
+                      </li>
+                    );
+                  })}
+              </ul>
+              <Compose leagueId={league.id} />
+            </div>
+          )}
         </div>
       </div>
     </Shell>

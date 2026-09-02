@@ -3,7 +3,7 @@ import type { IntegrityReport } from "@/lib/types";
 
 export function Kicker({ children }: { children: React.ReactNode }) {
   return (
-    <div className="text-[11px] font-medium uppercase tracking-[0.22em] text-copper">
+    <div className="text-[10px] font-medium tracking-[0.28em] text-spark">
       {children}
     </div>
   );
@@ -12,14 +12,14 @@ export function Kicker({ children }: { children: React.ReactNode }) {
 export function IntegrityChip({ report }: { report: IntegrityReport }) {
   if (report.boardEligible) {
     return (
-      <span className="rounded-full bg-yes/15 px-2 py-0.5 text-[11px] uppercase tracking-wide text-yes">
-        Board-eligible · {report.uniqueTraders} desks
+      <span className="border border-yes/40 px-2 py-0.5 text-[10px] tracking-widest text-yes">
+        CLEAR · {report.uniqueTraders} NODES
       </span>
     );
   }
   return (
-    <span className="rounded-full bg-warn/15 px-2 py-0.5 text-[11px] uppercase tracking-wide text-warn">
-      Thin · {report.uniqueTraders}/{report.minUniqueTraders} desks
+    <span className="border border-warn/40 px-2 py-0.5 text-[10px] tracking-widest text-warn">
+      THIN · {report.uniqueTraders}/{report.minUniqueTraders}
     </span>
   );
 }
@@ -50,8 +50,17 @@ export function SparkAmt({ n, signed = false }: { n: number; signed?: boolean })
 
 export function Bar({ p }: { p: number }) {
   return (
-    <div className="h-1.5 w-full overflow-hidden rounded-full bg-ink-3">
+    <div className="h-1.5 w-full overflow-hidden bg-ink-3">
       <div className="h-full bg-spark" style={{ width: `${Math.max(2, Math.min(100, p * 100))}%` }} />
     </div>
+  );
+}
+
+export function Percentile({ pct }: { pct: number }) {
+  return (
+    <span className="tabular text-mag">
+      P{Math.round(pct).toString().padStart(2, "0")}
+      <span className="text-muted"> · beats {pct.toFixed(0)}%</span>
+    </span>
   );
 }

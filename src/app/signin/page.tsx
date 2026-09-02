@@ -1,3 +1,4 @@
+import { EmailForm } from "@/components/EmailForm";
 import { Kicker } from "@/components/Bits";
 import { Shell } from "@/components/Shell";
 import { actorId } from "@/lib/http";
@@ -12,26 +13,20 @@ export default async function SignInPage() {
 
   return (
     <Shell here="/">
-      <Kicker>Desk</Kicker>
-      <h1 className="display mt-2 text-4xl">Sign in</h1>
-      <p className="mt-2 max-w-xl text-muted">
-        GitHub is a durable desk. Friends without GitHub should use an invite link instead.
+      <Kicker>AUTH // DESK</Kicker>
+      <h1 className="mt-2 text-3xl">Session</h1>
+      <p className="mt-2 max-w-xl text-sm text-muted">
+        Email confirm via Resend. GitHub if configured. Or an invite handle at /join/DESK12.
+        Play-money. No cash-out.
       </p>
-      {github ? (
+      <EmailForm />
+      {github && (
         <a
           href="/api/auth/signin/github"
-          className="mt-6 inline-block rounded-md bg-spark px-4 py-2 text-sm text-ink"
+          className="mt-6 inline-block border border-mag px-3 py-2 text-[11px] tracking-widest text-mag"
         >
-          Sign in with GitHub
+          GITHUB
         </a>
-      ) : (
-        <p className="mt-6 text-muted">
-          GitHub OAuth is not configured on this deploy. Use a league invite — try{" "}
-          <a href="/join/DESK12" className="text-spark">
-            /join/DESK12
-          </a>
-          .
-        </p>
       )}
     </Shell>
   );

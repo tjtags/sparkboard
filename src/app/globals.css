@@ -1,55 +1,69 @@
 @import "tailwindcss";
 
 :root {
-  --ink: #0b0e14;
-  --ink-2: #12161f;
-  --ink-3: #1a2030;
-  --line: #2a3348;
-  --muted: #8b93a7;
-  --paper: #ede6d6;
-  --paper-2: #d8cbb3;
-  --spark: #e8b86d;
-  --copper: #c4783a;
-  --yes: #3ddc97;
-  --no: #ff6b6b;
-  --warn: #f0c14b;
+  --void: #07090c;
+  --ink: #0a0e14;
+  --ink-2: #0e141c;
+  --ink-3: #141c28;
+  --line: #1c2a3a;
+  --muted: #6b7c8f;
+  --paper: #c8d4e0;
+  --spark: #7cffcb;
+  --copper: #5eead4;
+  --mag: #e879f9;
+  --yes: #7cffcb;
+  --no: #ff5c7a;
+  --warn: #f5d76e;
 }
 
 @theme inline {
+  --color-void: var(--void);
   --color-ink: var(--ink);
   --color-ink-2: var(--ink-2);
   --color-ink-3: var(--ink-3);
   --color-line: var(--line);
   --color-muted: var(--muted);
   --color-paper: var(--paper);
-  --color-paper-2: var(--paper-2);
   --color-spark: var(--spark);
   --color-copper: var(--copper);
+  --color-mag: var(--mag);
   --color-yes: var(--yes);
   --color-no: var(--no);
   --color-warn: var(--warn);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-geist-mono);
   --font-mono: var(--font-geist-mono);
-  --font-display: var(--font-newsreader);
 }
 
 html,
 body {
-  background: var(--ink);
+  background: var(--void);
   color: var(--paper);
   min-height: 100%;
 }
 
 body {
-  font-family: var(--font-sans), system-ui, sans-serif;
+  font-family: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
   background-image:
-    radial-gradient(1200px 600px at 80% -10%, rgba(196, 120, 58, 0.14), transparent 55%),
-    linear-gradient(180deg, #0b0e14 0%, #0d1118 100%);
+    linear-gradient(rgba(124, 255, 203, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(124, 255, 203, 0.03) 1px, transparent 1px),
+    radial-gradient(900px 480px at 100% 0%, rgba(232, 121, 249, 0.08), transparent 50%),
+    radial-gradient(700px 400px at 0% 100%, rgba(124, 255, 203, 0.06), transparent 45%);
+  background-size: 28px 28px, 28px 28px, auto, auto;
 }
 
-.display {
-  font-family: var(--font-display), Georgia, serif;
-  font-optical-sizing: auto;
+body::after {
+  content: "";
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 2px,
+    rgba(0, 0, 0, 0.08) 3px
+  );
+  mix-blend-mode: multiply;
 }
 
 .tabular {
@@ -58,7 +72,7 @@ body {
 
 ::selection {
   background: var(--spark);
-  color: var(--ink);
+  color: var(--void);
 }
 
 input,
@@ -79,9 +93,43 @@ a {
 
 .field {
   width: 100%;
-  border-radius: 0.375rem;
   border: 1px solid var(--line);
   background: var(--ink-2);
   padding: 0.5rem 0.75rem;
   color: var(--paper);
+  border-radius: 0;
+}
+
+.field:focus {
+  outline: 1px solid var(--spark);
+  outline-offset: 0;
+}
+
+.tick {
+  position: relative;
+}
+.tick::before,
+.tick::after {
+  content: "";
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border: 1px solid var(--spark);
+  opacity: 0.7;
+}
+.tick::before {
+  top: 0;
+  left: 0;
+  border-right: 0;
+  border-bottom: 0;
+}
+.tick::after {
+  bottom: 0;
+  right: 0;
+  border-left: 0;
+  border-top: 0;
+}
+
+.glow {
+  text-shadow: 0 0 12px rgba(124, 255, 203, 0.45);
 }

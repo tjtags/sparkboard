@@ -1,16 +1,9 @@
 export function Mark({ className = "h-7 w-7" }: { className?: string }) {
   return (
     <svg viewBox="0 0 32 32" className={className} aria-hidden>
-      <rect width="32" height="32" rx="7" fill="#0B0E14" />
-      <path
-        d="M16 2.4 18.2 13.8 29.6 16 18.2 18.2 16 29.6 13.8 18.2 2.4 16 13.8 13.8Z"
-        fill="#E8B86D"
-      />
-      <path
-        d="M16 7.2 17.15 14.85 24.8 16 17.15 17.15 16 24.8 14.85 17.15 7.2 16 14.85 14.85Z"
-        fill="#C4783A"
-      />
-      <path d="M16 13.4 18.6 16 16 18.6 13.4 16Z" fill="#0B0E14" />
+      <rect width="32" height="32" fill="#07090c" />
+      <path d="M16 3 18 14 29 16 18 18 16 29 14 18 3 16 14 14Z" fill="#7CFFCB" />
+      <rect x="14.2" y="14.2" width="3.6" height="3.6" transform="rotate(45 16 16)" fill="#07090c" />
     </svg>
   );
 }
@@ -18,9 +11,9 @@ export function Mark({ className = "h-7 w-7" }: { className?: string }) {
 export function Wordmark({ compact = false }: { compact?: boolean }) {
   return (
     <span className="flex items-center gap-2">
-      <Mark className={compact ? "h-6 w-6" : "h-8 w-8"} />
-      <span className="display text-[1.15rem] leading-none tracking-tight">
-        Spark<span className="text-spark">board</span>
+      <Mark className={compact ? "h-5 w-5" : "h-6 w-6"} />
+      <span className="text-[13px] tracking-[0.28em] text-spark">
+        SPARK<span className="text-paper">BOARD</span>
       </span>
     </span>
   );

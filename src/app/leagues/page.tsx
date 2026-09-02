@@ -13,7 +13,7 @@ export default async function LeaguesPage() {
   return (
     <Shell here="/leagues">
       <Kicker>Leagues</Kicker>
-      <h1 className="display mt-2 text-4xl">Fantasy desks, not casinos</h1>
+      <h1 className="mt-2 text-3xl tracking-tight">Fantasy desks, not casinos</h1>
       <p className="mt-2 max-w-2xl text-muted">
         Every league is its own million-Spark bankroll. You cannot send Sparks to another
         desk or another league. Friend leagues are invite-only — that is most of the
@@ -28,7 +28,7 @@ export default async function LeaguesPage() {
               <div className="text-[11px] uppercase tracking-[0.18em] text-copper">
                 {l.kind} · {n} desks
               </div>
-              <h2 className="display mt-2 text-2xl">{l.name}</h2>
+              <h2 className="mt-2 text-xl tracking-tight">{l.name}</h2>
               <p className="mt-1 text-sm text-muted">{l.blurb}</p>
               <div className="mt-4 text-sm">
                 Stake ✦{formatSparks(STARTING_BANKROLL)}

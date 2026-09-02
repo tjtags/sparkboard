@@ -13,7 +13,7 @@ export default async function IntegrityPage() {
   return (
     <Shell here="/integrity">
       <Kicker>Anti-farm</Kicker>
-      <h1 className="display mt-2 text-4xl">How the board refuses bots</h1>
+      <h1 className="mt-2 text-3xl tracking-tight">How the board refuses bots</h1>
       <p className="mt-3 max-w-2xl text-muted">
         The attack is not wash trades against an order book — Sparkboard is an AMM. The
         attack is spawning desks, parking them on the wrong side of a question you already

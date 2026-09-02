@@ -15,6 +15,8 @@ export function PlayerBar({
   guest,
   githubTaken,
   githubEnabled,
+  beatPct,
+  rank,
 }: {
   players: Player[];
   currentId: string | null;
@@ -25,6 +27,8 @@ export function PlayerBar({
   guest?: boolean;
   githubTaken?: boolean;
   githubEnabled?: boolean;
+  beatPct?: number;
+  rank?: number;
 }) {
   const router = useRouter();
 
@@ -39,14 +43,17 @@ export function PlayerBar({
 
   if (signedOut) {
     return (
-      <div className="flex flex-wrap items-center gap-3 text-[13px]">
-        <span className="text-muted">Read-only until you have a desk.</span>
+      <div className="flex flex-wrap items-center gap-3 text-[11px] tracking-widest">
+        <span className="text-muted">NO SESSION</span>
         <a href="/join/DESK12" className="text-spark hover:underline">
-          Join Desk 12
+          /join/DESK12
+        </a>
+        <a href="/signin" className="text-mag hover:underline">
+          EMAIL
         </a>
         {githubEnabled && (
           <a href="/signin" className="text-copper hover:underline">
-            Sign in with GitHub
+            GITHUB
           </a>
         )}
       </div>
@@ -54,34 +61,38 @@ export function PlayerBar({
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-3 text-[13px]">
-      <span className="text-muted">Trading as</span>
+    <div className="flex flex-wrap items-center gap-3 text-[11px] tracking-widest">
       {switcher ? (
         <select
-          className="rounded-md border border-line bg-ink-2 px-2 py-1"
+          className="border border-line bg-ink-2 px-2 py-1"
           value={currentId ?? ""}
           onChange={(e) => switchTo(e.target.value)}
         >
           {players.map((p) => (
             <option key={p.id} value={p.id}>
-              {p.displayName} (@{p.handle})
+              {p.handle}
             </option>
           ))}
         </select>
       ) : (
-        <span className="text-paper">@{handle}</span>
-      )}
-      <span className="tabular text-spark">✦{formatSparks(cash)} cash</span>
-      {guest && githubEnabled && (
-        <a href="/api/auth/signin/github" className="text-copper hover:underline">
-          Connect GitHub
+        <a href={`/d/${handle}`} className="text-spark hover:underline">
+          @{handle}
         </a>
       )}
-      {githubTaken && (
-        <span className="text-warn">That GitHub is already a desk. You are still this guest.</span>
+      <span className="tabular text-paper">✦{formatSparks(cash)}</span>
+      {rank != null && beatPct != null && (
+        <span className="text-mag">
+          #{rank} · P{Math.round(beatPct)}
+        </span>
       )}
+      {guest && githubEnabled && (
+        <a href="/api/auth/signin/github" className="text-copper hover:underline">
+          LINK GH
+        </a>
+      )}
+      {githubTaken && <span className="text-warn">GH TAKEN</span>}
       <a href="/api/auth/signout" className="text-muted hover:text-paper">
-        Sign out
+        EXIT
       </a>
     </div>
   );

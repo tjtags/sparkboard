@@ -23,7 +23,7 @@ export default async function NewMarketPage({
   return (
     <Shell here="/markets">
       <Kicker>Market builder</Kicker>
-      <h1 className="display mt-2 text-4xl">Write a question the book can score</h1>
+      <h1 className="mt-2 text-3xl tracking-tight">Write a question the book can score</h1>
       <p className="mt-2 max-w-xl text-muted">
         Binary by default. Liquidity <em>b</em> bounds the maker&apos;s loss at b ln n. Start
         everyone at a prior that already looks like a probability.

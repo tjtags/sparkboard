@@ -40,7 +40,7 @@ export default async function MarketPage({ params }: { params: Promise<{ id: str
             {market.category} · b={market.b.toLocaleString()} · max loss ✦
             {formatSparks(maxLoss(market.b, market.outcomes.length))}
           </Kicker>
-          <h1 className="display mt-2 text-4xl leading-tight">{market.question}</h1>
+          <h1 className="mt-2 text-3xl leading-tight tracking-tight">{market.question}</h1>
           <p className="mt-3 max-w-2xl text-muted">{market.description}</p>
           <p className="mt-2 text-[13px] text-muted">
             Resolves: {market.resolutionCriteria}

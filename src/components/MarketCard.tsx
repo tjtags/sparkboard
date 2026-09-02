@@ -8,25 +8,22 @@ export function MarketCard({ market }: { market: PricedMarket }) {
   return (
     <Link
       href={`/markets/${market.id}`}
-      className="block hairline rounded-lg bg-ink-2/60 p-4 transition hover:bg-ink-3"
+      className="tick block border border-line bg-ink/60 p-4 hover:border-spark/50"
     >
       <div className="flex items-start justify-between gap-3">
-        <div className="text-[11px] uppercase tracking-[0.18em] text-muted">
-          {market.category}
-          {market.featured ? " · fly" : ""}
-          {market.callSheet ? " · sheet" : ""}
+        <div className="text-[10px] tracking-[0.2em] text-muted">
+          {market.category.toUpperCase()}
+          {market.featured ? " · HEAD" : ""}
         </div>
         <IntegrityChip report={market.integrity} />
       </div>
-      <h3 className="display mt-2 text-lg leading-snug">{market.question}</h3>
+      <h3 className="mt-2 text-[15px] leading-snug">{market.question}</h3>
       <div className="mt-4 flex items-end justify-between gap-3">
         <div>
-          <div className="text-[11px] uppercase tracking-wide text-muted">
-            {market.outcomes[0]?.name}
-          </div>
+          <div className="text-[10px] tracking-widest text-muted">{market.outcomes[0]?.name}</div>
           <div className="tabular text-2xl text-spark">{formatPct(top, 0)}</div>
         </div>
-        <div className="w-32">
+        <div className="w-28">
           <Bar p={top} />
         </div>
       </div>

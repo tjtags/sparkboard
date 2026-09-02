@@ -16,7 +16,7 @@ export default async function MarketsPage() {
   return (
     <Shell here="/markets">
       <Kicker>All open markets</Kicker>
-      <h1 className="display mt-2 text-4xl">The book</h1>
+      <h1 className="mt-2 text-3xl tracking-tight">The book</h1>
       <p className="mt-2 max-w-2xl text-muted">
         Anyone can open a question. Prices are LMSR probabilities. Thin books stay on the fly
         but do not score the board.
