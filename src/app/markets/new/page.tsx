@@ -1,17 +1,24 @@
 import { Kicker } from "@/components/Bits";
 import { Shell } from "@/components/Shell";
 import { loadState } from "@/lib/store";
-import { readPlayerId } from "@/lib/session";
+import { actorId } from "@/lib/http";
 import { currentUser } from "@/lib/views";
 
 export const dynamic = "force-dynamic";
 
-export default async function NewMarketPage() {
+export default async function NewMarketPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ question?: string }>;
+}) {
+  const q = (await searchParams).question ?? "";
   const s = await loadState();
-  const me = currentUser(s, await readPlayerId());
-  const leagues = s.leagues.filter((l) =>
-    s.memberships.some((m) => m.userId === me.id && m.leagueId === l.id),
-  );
+  const me = currentUser(s, (await actorId()) ?? undefined);
+  const leagues = me
+    ? s.leagues.filter((l) =>
+        s.memberships.some((m) => m.userId === me.id && m.leagueId === l.id),
+      )
+    : [];
 
   return (
     <Shell here="/markets">
@@ -32,7 +39,14 @@ export default async function NewMarketPage() {
           </select>
         </Field>
         <Field label="Question">
-          <input name="question" required minLength={8} className="field" placeholder="Will … ?" />
+          <input
+            name="question"
+            required
+            minLength={8}
+            className="field"
+            placeholder="Will … ?"
+            defaultValue={q}
+          />
         </Field>
         <Field label="Why it matters">
           <textarea name="description" rows={3} className="field" />

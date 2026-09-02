@@ -1,21 +1,41 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { EngineError } from "./engine";
-import { PLAYER_COOKIE } from "./session";
-import { currentUser } from "./views";
+import { PLAYER_COOKIE, devSwitcherEnabled } from "./session";
 import { loadState } from "./store";
+import { currentUser } from "./views";
 
-export async function actorId() {
+const STATUS: Record<string, number> = {
+  need_desk: 401,
+  spawn_rate: 429,
+  join_rate: 429,
+  forbidden: 403,
+};
+
+export async function actorId(): Promise<string | null> {
   const s = await loadState();
-  const jar = await cookies();
-  return currentUser(s, jar.get(PLAYER_COOKIE)?.value).id;
+  let userId: string | undefined;
+  try {
+    const { auth } = await import("@/auth");
+    const session = await auth();
+    const id = (session?.user as { sparkUserId?: string; id?: string } | undefined)?.sparkUserId
+      ?? (session?.user as { id?: string } | undefined)?.id;
+    if (id) userId = id;
+  } catch {
+    // Auth.js not configured yet
+  }
+  if (!userId && devSwitcherEnabled()) {
+    const jar = await cookies();
+    userId = jar.get(PLAYER_COOKIE)?.value;
+  }
+  return currentUser(s, userId)?.id ?? null;
 }
 
 export function formRedirect(url: string) {
   redirect(url);
 }
 
-export function fail(e: unknown) {
+export function fail(e: unknown, fallbackCode = "error") {
   if (
     typeof e === "object" &&
     e &&
@@ -25,7 +45,15 @@ export function fail(e: unknown) {
     throw e;
   }
   if (e instanceof EngineError) {
-    return Response.json({ error: e.message, code: e.code }, { status: 400 });
+    const status = STATUS[e.code] ?? 400;
+    return Response.json({ error: e.message, code: e.code }, { status });
+  }
+  if (fallbackCode === "need_desk") {
+    return Response.json({ error: "Sign in or join a league first", code: "need_desk" }, { status: 401 });
   }
   throw e;
+}
+
+export function needDesk() {
+  return Response.json({ error: "Sign in or join a league first", code: "need_desk" }, { status: 401 });
 }

@@ -1,11 +1,12 @@
 import { createMarket } from "@/lib/engine";
-import { actorId, fail, formRedirect } from "@/lib/http";
+import { actorId, fail, formRedirect, needDesk } from "@/lib/http";
 import { mutate } from "@/lib/store";
 import type { Category } from "@/lib/types";
 
 export async function POST(req: Request) {
   try {
     const userId = await actorId();
+    if (!userId) return needDesk();
     const form = await req.formData();
     const priorYes = Number(form.get("priorYes") ?? 50) / 100;
     const closes = String(form.get("closesAt") || "2026-11-03");

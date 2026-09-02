@@ -59,6 +59,23 @@ export default async function CallSheetPage() {
           election calendar (Nov 3). This is a game book, not a forecast product.
         </p>
       </div>
+      {s.wireDrafts[0] && (
+        <div className="mt-8">
+          <Kicker>Wire · {s.wireDrafts[0].source}</Kicker>
+          <ul className="mt-3 space-y-2">
+            {s.wireDrafts[0].questions.map((q) => (
+              <li key={q}>
+                <Link
+                  href={`/markets/new?question=${encodeURIComponent(q)}`}
+                  className="text-sm text-spark hover:underline"
+                >
+                  List this: {q}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
       <form action="/api/desk/suggest" method="post" className="mt-8 max-w-xl">
         <Kicker>Wire · optional Grok scrape</Kicker>
         <p className="mt-2 text-sm text-muted">

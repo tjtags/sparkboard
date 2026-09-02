@@ -33,7 +33,15 @@ vercel deploy --prod --yes
 
 Or click **Import** on [vercel.com/new](https://vercel.com/new) after the GitHub repo exists, then **Storage → Create Database → Blob → Private**, and redeploy.
 
-`GET /api/health` reports `{ store: "file" | "blob" }`. If a Vercel deploy is still on `file`, the Blob store is not attached.
+`GET /api/health` reports `{ store, auth, github, grok, switcher }`. If a Vercel deploy is still on `file`, the Blob store is not attached.
+
+### Make it sendable
+
+1. Set `AUTH_SECRET` on Vercel (required for guest desks).
+2. Optional: GitHub OAuth app → `AUTH_GITHUB_ID` / `AUTH_GITHUB_SECRET` (callback `https://<prod>/api/auth/callback/github`).
+3. Share `/join/DESK12`. Friends pick a handle. No Spawn box. No Mira default.
+
+See `docs/GROWTH.md` for the full loop (identity, OG cards, lock-in cards, Grok wire).
 
 ## What you can click
 

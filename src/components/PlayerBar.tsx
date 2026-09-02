@@ -1,7 +1,6 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
 import { formatSparks } from "@/lib/format";
 
 type Player = { id: string; handle: string; displayName: string };
@@ -10,71 +9,80 @@ export function PlayerBar({
   players,
   currentId,
   cash,
+  signedOut,
+  switcher,
+  handle,
+  guest,
+  githubTaken,
+  githubEnabled,
 }: {
   players: Player[];
-  currentId: string;
+  currentId: string | null;
   cash: number;
+  signedOut: boolean;
+  switcher: boolean;
+  handle?: string;
+  guest?: boolean;
+  githubTaken?: boolean;
+  githubEnabled?: boolean;
 }) {
   const router = useRouter();
-  const [handle, setHandle] = useState("");
-  const [busy, setBusy] = useState(false);
 
   async function switchTo(id: string) {
-    setBusy(true);
     await fetch("/api/session", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ userId: id }),
     });
-    setBusy(false);
     router.refresh();
   }
 
-  async function spawn(e: React.FormEvent) {
-    e.preventDefault();
-    setBusy(true);
-    const res = await fetch("/api/session", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ handle }),
-    });
-    setBusy(false);
-    if (res.ok) {
-      setHandle("");
-      router.refresh();
-    }
+  if (signedOut) {
+    return (
+      <div className="flex flex-wrap items-center gap-3 text-[13px]">
+        <span className="text-muted">Read-only until you have a desk.</span>
+        <a href="/join/DESK12" className="text-spark hover:underline">
+          Join Desk 12
+        </a>
+        {githubEnabled && (
+          <a href="/signin" className="text-copper hover:underline">
+            Sign in with GitHub
+          </a>
+        )}
+      </div>
+    );
   }
 
   return (
     <div className="flex flex-wrap items-center gap-3 text-[13px]">
       <span className="text-muted">Trading as</span>
-      <select
-        className="rounded-md border border-line bg-ink-2 px-2 py-1"
-        value={currentId}
-        disabled={busy}
-        onChange={(e) => switchTo(e.target.value)}
-      >
-        {players.map((p) => (
-          <option key={p.id} value={p.id}>
-            {p.displayName} (@{p.handle})
-          </option>
-        ))}
-      </select>
-      <span className="tabular text-spark">✦{formatSparks(cash)} cash</span>
-      <form onSubmit={spawn} className="flex items-center gap-2">
-        <input
-          value={handle}
-          onChange={(e) => setHandle(e.target.value)}
-          placeholder="new desk handle"
-          className="w-36 rounded-md border border-line bg-ink-2 px-2 py-1 placeholder:text-muted"
-        />
-        <button
-          disabled={busy || handle.length < 2}
-          className="text-copper hover:text-spark disabled:opacity-40"
+      {switcher ? (
+        <select
+          className="rounded-md border border-line bg-ink-2 px-2 py-1"
+          value={currentId ?? ""}
+          onChange={(e) => switchTo(e.target.value)}
         >
-          Spawn
-        </button>
-      </form>
+          {players.map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.displayName} (@{p.handle})
+            </option>
+          ))}
+        </select>
+      ) : (
+        <span className="text-paper">@{handle}</span>
+      )}
+      <span className="tabular text-spark">✦{formatSparks(cash)} cash</span>
+      {guest && githubEnabled && (
+        <a href="/api/auth/signin/github" className="text-copper hover:underline">
+          Connect GitHub
+        </a>
+      )}
+      {githubTaken && (
+        <span className="text-warn">That GitHub is already a desk. You are still this guest.</span>
+      )}
+      <a href="/api/auth/signout" className="text-muted hover:text-paper">
+        Sign out
+      </a>
     </div>
   );
 }

@@ -57,6 +57,7 @@ describe("new desks", () => {
       desk: "Oracle",
       createdAt: new Date().toISOString(),
       system: true,
+      authKind: "system",
     });
     s.leagues.push({
       id: "league_public",

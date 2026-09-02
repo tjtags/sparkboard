@@ -19,7 +19,9 @@ import {
   sharesForProceeds,
   sharesForSpend,
 } from "./lmsr";
+import { normalizeInvite, randomInvite } from "./invite";
 import type {
+  AuthKind,
   Category,
   Cluster,
   IntegrityReport,
@@ -166,7 +168,12 @@ function reconstructSettled(s: State, userId: string, market: Market) {
   return { netSpend, payout: Math.max(0, shares) };
 }
 
-export function createUser(s: State, handle: string, displayName?: string): User {
+export function createUser(
+  s: State,
+  handle: string,
+  displayName?: string,
+  opts?: { authKind?: AuthKind; githubId?: string; githubLogin?: string; avatarUrl?: string },
+): User {
   const h = handle.trim().toLowerCase().replace(/[^a-z0-9_]/g, "").slice(0, 20);
   if (h.length < 2) throw new EngineError("bad_handle", "Handle needs at least 2 characters");
   if (s.users.some((u) => u.handle === h)) throw new EngineError("handle_taken", "Handle already in use");
@@ -176,17 +183,28 @@ export function createUser(s: State, handle: string, displayName?: string): User
     displayName: (displayName || handle).trim().slice(0, 40),
     desk: "Independent",
     createdAt: now(),
+    authKind: opts?.authKind ?? "guest",
+    githubId: opts?.githubId,
+    githubLogin: opts?.githubLogin,
+    avatarUrl: opts?.avatarUrl,
   };
   s.users.push(user);
   joinLeague(s, user.id, PUBLIC_LEAGUE_ID);
   return user;
 }
 
+export function leagueByInvite(s: State, code: string) {
+  const n = normalizeInvite(code);
+  return s.leagues.find((l) => l.inviteCode && normalizeInvite(l.inviteCode) === n);
+}
+
 export function joinLeague(s: State, userId: string, leagueId: string, invite?: string) {
   getUser(s, userId);
   const league = getLeague(s, leagueId);
-  if (league.kind === "friends" && league.inviteCode && invite !== league.inviteCode) {
-    throw new EngineError("bad_invite", "That invite code does not match");
+  if (league.kind === "friends" && league.inviteCode) {
+    if (normalizeInvite(invite) !== normalizeInvite(league.inviteCode)) {
+      throw new EngineError("bad_invite", "That invite code does not match");
+    }
   }
   if (s.memberships.some((m) => m.userId === userId && m.leagueId === leagueId)) {
     throw new EngineError("already_in", "Already in this league");
@@ -222,7 +240,9 @@ export function createLeague(
     slug,
     kind: "friends",
     blurb: blurb.trim().slice(0, 160) || "A private desk.",
-    inviteCode: crypto.randomUUID().slice(0, 6).toUpperCase(),
+    inviteCode: randomInvite(new Set(s.leagues.map((l) => l.inviteCode).filter(Boolean) as string[])),
+    cardMode: "points",
+    cardPool: "league+public",
     startingBankroll: STARTING_BANKROLL,
     minUniqueTraders: MIN_UNIQUE.friends,
     createdBy: userId,
@@ -447,6 +467,13 @@ export function resolveMarket(s: State, actorId: string, marketId: string, outco
     if (pos.outcomeId === outcomeId) mem.cash += pos.shares;
   }
   s.positions = s.positions.filter((p) => p.marketId !== market.id);
+  for (const pick of s.lockInPicks ?? []) {
+    if (pick.marketId !== market.id) continue;
+    if (pick.status === "hit" || pick.status === "miss" || pick.status === "void") continue;
+    const hit = pick.outcomeId === outcomeId;
+    pick.status = hit ? "hit" : "miss";
+    pick.edge = hit ? 1 - pick.pLock : -pick.pLock;
+  }
   s.updatedAt = market.resolvedAt;
   return market;
 }

@@ -1,4 +1,5 @@
 import { PUBLIC_LEAGUE_ID } from "./constants";
+import { devSwitcherEnabled } from "./flags";
 import { boardPnL, integrityOf, markToMarket, realizedAndOpen } from "./engine";
 import { prices } from "./lmsr";
 import type { IntegrityReport, Market, State, User } from "./types";
@@ -83,11 +84,11 @@ export function tape(s: State, marketId?: string, limit = 24) {
 }
 
 export function currentUser(s: State, userId: string | undefined) {
-  if (userId) {
-    const u = s.users.find((x) => x.id === userId && !x.system);
-    if (u) return u;
-  }
-  return s.users.find((u) => u.handle === "mira") ?? s.users.find((u) => !u.system)!;
+  if (!userId) return null;
+  const u = s.users.find((x) => x.id === userId);
+  if (!u || u.system) return null;
+  if (u.authKind === "seed" && !devSwitcherEnabled()) return null;
+  return u;
 }
 
 export { markToMarket };

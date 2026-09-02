@@ -4,7 +4,7 @@ import { Shell } from "@/components/Shell";
 import { TradeTicket } from "@/components/TradeTicket";
 import { formatSparks, formatPct, relative } from "@/lib/format";
 import { costToPrice, maxLoss } from "@/lib/lmsr";
-import { readPlayerId } from "@/lib/session";
+import { actorId } from "@/lib/http";
 import { loadState } from "@/lib/store";
 import { currentUser, priceMarket, tape } from "@/lib/views";
 
@@ -16,11 +16,15 @@ export default async function MarketPage({ params }: { params: Promise<{ id: str
   const raw = s.markets.find((m) => m.id === id);
   if (!raw) notFound();
   const market = priceMarket(s, raw);
-  const me = currentUser(s, await readPlayerId());
-  const mem = s.memberships.find((m) => m.userId === me.id && m.leagueId === market.leagueId);
+  const me = currentUser(s, (await actorId()) ?? undefined);
+  const mem = me
+    ? s.memberships.find((m) => m.userId === me.id && m.leagueId === market.leagueId)
+    : undefined;
   const holdings: Record<string, number> = {};
-  for (const p of s.positions.filter((p) => p.userId === me.id && p.marketId === market.id)) {
-    holdings[p.outcomeId] = p.shares;
+  if (me) {
+    for (const p of s.positions.filter((p) => p.userId === me.id && p.marketId === market.id)) {
+      holdings[p.outcomeId] = p.shares;
+    }
   }
   const prints = tape(s, market.id, 16);
   const depth = [0.6, 0.7, 0.8, 0.9].map((t) => ({

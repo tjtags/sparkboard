@@ -1,6 +1,10 @@
 export type LeagueKind = "global" | "friends";
 export type MarketStatus = "open" | "closed" | "resolved";
 export type Category = "politics" | "sports" | "macro" | "culture" | "science" | "meta";
+export type AuthKind = "github" | "guest" | "seed" | "system";
+export type CardMode = "points" | "off";
+export type CardPool = "league" | "league+public";
+export type LockInStatus = "open" | "locked" | "hit" | "miss" | "void";
 
 export type User = {
   id: string;
@@ -9,6 +13,10 @@ export type User = {
   desk: string;
   createdAt: string;
   system?: boolean;
+  authKind: AuthKind;
+  githubId?: string;
+  githubLogin?: string;
+  avatarUrl?: string;
 };
 
 export type League = {
@@ -22,6 +30,8 @@ export type League = {
   minUniqueTraders: number;
   createdBy: string;
   createdAt: string;
+  cardMode?: CardMode;
+  cardPool?: CardPool;
 };
 
 export type Membership = {
@@ -56,7 +66,6 @@ export type Market = {
   closesAt: string;
   createdAt: string;
   minUniqueTraders: number;
-  /** Frozen at resolution so later clustering cannot rewrite history. */
   boardEligibleAtResolve?: boolean;
 };
 
@@ -81,6 +90,41 @@ export type Trade = {
   at: string;
 };
 
+export type LockInPick = {
+  id: string;
+  userId: string;
+  leagueId: string;
+  week: string;
+  marketId: string;
+  outcomeId: string;
+  pLock: number;
+  status: LockInStatus;
+  edge?: number;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type WireDraft = {
+  id: string;
+  topic: string;
+  questions: string[];
+  source: "grok" | "canned";
+  createdAt: string;
+  createdBy: string;
+};
+
+export type SpawnEvent = {
+  at: string;
+  ipHash: string;
+  userId: string;
+};
+
+export type JoinProbe = {
+  at: string;
+  userId: string;
+  ok: boolean;
+};
+
 export type IntegrityReport = {
   marketId: string;
   uniqueTraders: number;
@@ -102,12 +146,16 @@ export type Cluster = {
 };
 
 export type State = {
-  version: 1;
+  version: 2;
   users: User[];
   leagues: League[];
   memberships: Membership[];
   markets: Market[];
   positions: Position[];
   trades: Trade[];
+  lockInPicks: LockInPick[];
+  wireDrafts: WireDraft[];
+  spawnEvents: SpawnEvent[];
+  joinProbes: JoinProbe[];
   updatedAt: string;
 };

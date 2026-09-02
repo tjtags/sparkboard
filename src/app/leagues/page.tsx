@@ -39,8 +39,8 @@ export default async function LeaguesPage() {
                   </span>
                 )}
               </div>
-              {l.inviteCode && (
-                <div className="mt-2 text-[12px] text-muted">Invite {l.inviteCode}</div>
+              {l.kind === "friends" && (
+                <div className="mt-2 text-[12px] text-muted">Invite-only · join via link</div>
               )}
             </Link>
           );

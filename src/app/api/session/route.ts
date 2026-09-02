@@ -1,20 +1,18 @@
 import { NextResponse } from "next/server";
-import { createUser } from "@/lib/engine";
-import { PLAYER_COOKIE } from "@/lib/session";
-import { loadState, mutate } from "@/lib/store";
+import { PLAYER_COOKIE, devSwitcherEnabled } from "@/lib/session";
+import { loadState } from "@/lib/store";
 
 export async function POST(req: Request) {
-  const body = (await req.json()) as { userId?: string; handle?: string };
-  let userId = body.userId;
-  if (!userId && body.handle) {
-    userId = await mutate((s) => createUser(s, body.handle!).id);
+  if (!devSwitcherEnabled()) {
+    return NextResponse.json({ error: "Switcher is off", code: "forbidden" }, { status: 403 });
   }
-  if (!userId) return NextResponse.json({ error: "Need a desk" }, { status: 400 });
+  const body = (await req.json()) as { userId?: string };
+  const userId = body.userId;
+  if (!userId) return NextResponse.json({ error: "Need a desk", code: "need_desk" }, { status: 401 });
   const s = await loadState();
-  if (!s.users.some((u) => u.id === userId && !u.system)) {
-    return NextResponse.json({ error: "Unknown desk" }, { status: 404 });
-  }
+  const u = s.users.find((x) => x.id === userId && x.authKind === "seed");
+  if (!u) return NextResponse.json({ error: "Unknown seed desk" }, { status: 404 });
   const res = NextResponse.json({ ok: true, userId });
-  res.cookies.set(PLAYER_COOKIE, userId, { path: "/", httpOnly: false, sameSite: "lax" });
+  res.cookies.set(PLAYER_COOKIE, userId, { path: "/", httpOnly: true, sameSite: "lax" });
   return res;
 }

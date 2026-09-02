@@ -1,10 +1,14 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Kicker, SparkAmt } from "@/components/Bits";
+import { CopyInviteButton } from "@/components/CopyInviteButton";
+import { LockInCard } from "@/components/LockInCard";
 import { MarketCard } from "@/components/MarketCard";
 import { Shell } from "@/components/Shell";
 import { formatSparks } from "@/lib/format";
-import { readPlayerId } from "@/lib/session";
+import { actorId } from "@/lib/http";
+import { cardBoard, cardPool, isoWeekKey, lazyLock, weekBounds } from "@/lib/lockin";
+import { prices } from "@/lib/lmsr";
 import { loadState } from "@/lib/store";
 import { currentUser, flyMarkets, leaderboard } from "@/lib/views";
 
@@ -15,48 +19,107 @@ export default async function LeaguePage({ params }: { params: Promise<{ id: str
   const s = await loadState();
   const league = s.leagues.find((l) => l.id === id);
   if (!league) notFound();
-  const me = currentUser(s, await readPlayerId());
-  const inLeague = s.memberships.some((m) => m.userId === me.id && m.leagueId === league.id);
+  const me = currentUser(s, (await actorId()) ?? undefined);
+  const inLeague = Boolean(
+    me && s.memberships.some((m) => m.userId === me.id && m.leagueId === league.id),
+  );
   const board = leaderboard(s, league.id);
   const books = flyMarkets(s, league.id);
+  const cards = cardBoard(s, league.id);
+  const week = isoWeekKey();
+  const { locksAt } = weekBounds(week);
+  const pool = cardPool(s, league.id);
+  const myPick = me
+    ? s.lockInPicks.find((p) => p.userId === me.id && p.leagueId === league.id && p.week === week)
+    : undefined;
+  if (myPick) {
+    const m = s.markets.find((x) => x.id === myPick.marketId);
+    if (m) lazyLock(myPick, m);
+  }
+  const origin = process.env.NEXT_PUBLIC_APP_URL ?? "https://sparkboard-zeta.vercel.app";
+  const inviteUrl = league.inviteCode ? `${origin}/join/${league.inviteCode}` : "";
 
   return (
     <Shell here="/leagues">
-      <Kicker>
-        {league.kind} league{league.inviteCode ? ` · invite ${league.inviteCode}` : ""}
-      </Kicker>
+      <Kicker>{league.kind} league · week {week}</Kicker>
       <h1 className="display mt-2 text-4xl">{league.name}</h1>
       <p className="mt-2 max-w-xl text-muted">{league.blurb}</p>
 
+      {inLeague && inviteUrl && (
+        <div className="mt-6">
+          <Kicker>Invite</Kicker>
+          <p className="mt-1 text-sm text-muted">Text this. It is the growth loop.</p>
+          <div className="mt-2">
+            <CopyInviteButton url={inviteUrl} />
+          </div>
+        </div>
+      )}
+
       {!inLeague && league.kind === "friends" && (
-        <form action="/api/leagues/join" method="post" className="mt-6 flex max-w-md gap-2">
-          <input type="hidden" name="leagueId" value={league.id} />
-          <input name="invite" placeholder="Invite code" className="field" />
-          <button className="rounded-md bg-spark px-3 text-sm text-ink">Join · ✦1.00M</button>
-        </form>
+        <p className="mt-6 text-sm text-muted">
+          Need an invite. Ask a member, or try{" "}
+          <Link href={`/join/${league.inviteCode ?? "DESK12"}`} className="text-spark">
+            /join/{league.inviteCode ?? "DESK12"}
+          </Link>
+          .
+        </p>
+      )}
+
+      {inLeague && (league.cardMode ?? "off") === "points" && (
+        <div className="mt-8">
+          <LockInCard
+            leagueId={league.id}
+            locked={new Date().toISOString() >= locksAt}
+            books={pool.map((m) => ({
+              id: m.id,
+              question: m.question,
+              outcomes: m.outcomes,
+              prices: prices(m.q, m.b, m.pi),
+            }))}
+            current={
+              myPick
+                ? {
+                    question: s.markets.find((m) => m.id === myPick.marketId)?.question ?? "",
+                    outcome:
+                      s.markets
+                        .find((m) => m.id === myPick.marketId)
+                        ?.outcomes.find((o) => o.id === myPick.outcomeId)?.name ?? "",
+                    pLock: myPick.pLock,
+                    status: myPick.status,
+                  }
+                : undefined
+            }
+          />
+        </div>
       )}
 
       <div className="mt-10 grid gap-8 lg:grid-cols-2">
         <div>
           <Kicker>League board</Kicker>
           <ol className="mt-3">
-            {board.map((row, i) => (
-              <li
-                key={row.user.id}
-                className="flex items-center justify-between border-b border-line/60 py-2 text-sm"
-              >
-                <span>
-                  <span className="tabular text-muted">{i + 1}</span> {row.user.displayName}{" "}
-                  <span className="text-muted">@{row.user.handle}</span>
-                </span>
-                <span>
-                  <SparkAmt n={row.boardPnl} signed />{" "}
-                  <span className="text-[12px] text-muted">
-                    cash ✦{formatSparks(row.cash)}
+            {board.map((row, i) => {
+              const card = cards.find((c) => c.user.id === row.user.id);
+              return (
+                <li
+                  key={row.user.id}
+                  className="flex items-center justify-between border-b border-line/60 py-2 text-sm"
+                >
+                  <span>
+                    <span className="tabular text-muted">{i + 1}</span> {row.user.displayName}{" "}
+                    <span className="text-muted">@{row.user.handle}</span>
                   </span>
-                </span>
-              </li>
-            ))}
+                  <span>
+                    <SparkAmt n={row.boardPnl} signed />{" "}
+                    {card && (
+                      <span className="text-[12px] text-copper">
+                        card {card.score >= 0 ? "+" : ""}
+                        {(card.score * 100).toFixed(0)}
+                      </span>
+                    )}
+                  </span>
+                </li>
+              );
+            })}
           </ol>
         </div>
         <div>

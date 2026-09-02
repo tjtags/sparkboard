@@ -12,7 +12,15 @@ import type { Market, State, User } from "./types";
 const T0 = "2026-09-02T14:00:00.000Z";
 
 function user(id: string, handle: string, displayName: string, desk: string, system = false): User {
-  return { id, handle, displayName, desk, createdAt: T0, system };
+  return {
+    id,
+    handle,
+    displayName,
+    desk,
+    createdAt: T0,
+    system,
+    authKind: system ? "system" : "seed",
+  };
 }
 
 function mkt(partial: Omit<Market, "q" | "status" | "createdAt" | "minUniqueTraders"> & { n: number; min?: number }): Market {
@@ -39,13 +47,17 @@ function mkt(partial: Omit<Market, "q" | "status" | "createdAt" | "minUniqueTrad
 
 export function emptyState(): State {
   return {
-    version: 1,
+    version: 2,
     users: [],
     leagues: [],
     memberships: [],
     markets: [],
     positions: [],
     trades: [],
+    lockInPicks: [],
+    wireDrafts: [],
+    spawnEvents: [],
+    joinProbes: [],
     updatedAt: T0,
   };
 }
@@ -87,6 +99,8 @@ export function buildSeed(): State {
       minUniqueTraders: MIN_UNIQUE.friends,
       createdBy: "user_anjali",
       createdAt: T0,
+      cardMode: "points",
+      cardPool: "league+public",
     },
   ];
 

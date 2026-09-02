@@ -7,6 +7,7 @@ import {
   head,
   put,
 } from "@vercel/blob";
+import { migrate } from "./migrate";
 import { buildSeed } from "./seed";
 import type { State } from "./types";
 
@@ -64,7 +65,7 @@ async function loadFile(): Promise<State> {
   if (g.__sparkboard) return g.__sparkboard;
   try {
     const raw = await fs.readFile(FILE, "utf8");
-    g.__sparkboard = JSON.parse(raw) as State;
+    g.__sparkboard = migrate(JSON.parse(raw) as State);
     return g.__sparkboard;
   } catch (e) {
     if ((e as NodeJS.ErrnoException).code !== "ENOENT") throw e;
@@ -88,7 +89,7 @@ async function loadBlob(): Promise<State> {
     return seeded;
   }
   const text = await new Response(result.stream).text();
-  return JSON.parse(text) as State;
+  return migrate(JSON.parse(text) as State);
 }
 
 async function writeBlob(s: State, etag?: string) {
