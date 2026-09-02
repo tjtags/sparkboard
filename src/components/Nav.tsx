@@ -7,9 +7,11 @@ const LINKS = [
   ["/call-sheet", "SHEET"],
   ["/wire", "VENUES"],
   ["/markets", "BOOK"],
+  ["/sports", "SPORT"],
   ["/leagues", "DESKS"],
   ["/leaderboard", "RANK"],
   ["/inbox", "COMMS"],
+  ["/learn", "LEARN"],
   ["/math", "LMSR"],
   ["/integrity", "GATE"],
 ] as const;

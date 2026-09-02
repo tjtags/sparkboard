@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { DESK_USER_ID } from "./constants";
 import { buildSeed } from "./seed";
-import { currentUser, leaderboard } from "./views";
+import { ensureSportsMarkets } from "./sports";
+import { currentUser, flyMarkets, isCatalogSport, leaderboard } from "./views";
 
 describe("currentUser", () => {
   it("does not default to Mira", () => {
@@ -28,5 +30,15 @@ describe("currentUser", () => {
     expect(rows[0].rank).toBe(1);
     expect(rows[0].beatPct).toBeGreaterThanOrEqual(rows.at(-1)?.beatPct ?? 0);
     expect(rows.at(-1)?.beatPct).toBe(0);
+  });
+
+  it("keeps catalog moneylines off the fly", () => {
+    const s = buildSeed();
+    ensureSportsMarkets(s, 80);
+    const fly = flyMarkets(s);
+    expect(fly.some((m) => m.id === "mkt_house")).toBe(true);
+    expect(fly.some((m) => m.id === "mkt_sb-lxi-mvp")).toBe(true);
+    expect(fly.every((m) => !isCatalogSport(m))).toBe(true);
+    expect(s.markets.some((m) => m.createdBy === DESK_USER_ID && m.category === "sports")).toBe(true);
   });
 });

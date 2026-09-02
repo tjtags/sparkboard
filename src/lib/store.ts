@@ -9,6 +9,7 @@ import {
 } from "@vercel/blob";
 import { migrate } from "./migrate";
 import { buildSeed } from "./seed";
+import { ensureSportsMarkets } from "./sports";
 import type { State } from "./types";
 
 const FILE = path.join(process.cwd(), "data", "sparkboard.json");
@@ -51,7 +52,7 @@ export async function mutate<T>(fn: (s: State) => T): Promise<T> {
 }
 
 export async function resetState(): Promise<State> {
-  const seeded = buildSeed();
+  const seeded = ensureSportsMarkets(buildSeed());
   if (storeKind() === "blob") {
     await writeBlob(seeded);
     return seeded;
@@ -65,11 +66,11 @@ async function loadFile(): Promise<State> {
   if (g.__sparkboard) return g.__sparkboard;
   try {
     const raw = await fs.readFile(FILE, "utf8");
-    g.__sparkboard = migrate(JSON.parse(raw) as State);
+    g.__sparkboard = ensureSportsMarkets(migrate(JSON.parse(raw) as State));
     return g.__sparkboard;
   } catch (e) {
     if ((e as NodeJS.ErrnoException).code !== "ENOENT") throw e;
-    const seeded = buildSeed();
+    const seeded = ensureSportsMarkets(buildSeed());
     g.__sparkboard = seeded;
     await persistFile(seeded);
     return seeded;
@@ -84,12 +85,12 @@ async function persistFile(s: State) {
 async function loadBlob(): Promise<State> {
   const result = await get(BLOB_PATH, { access: ACCESS, useCache: false });
   if (!result || result.statusCode !== 200) {
-    const seeded = buildSeed();
+    const seeded = ensureSportsMarkets(buildSeed());
     await writeBlob(seeded);
     return seeded;
   }
   const text = await new Response(result.stream).text();
-  return migrate(JSON.parse(text) as State);
+  return ensureSportsMarkets(migrate(JSON.parse(text) as State));
 }
 
 async function writeBlob(s: State, etag?: string) {

@@ -45,18 +45,24 @@ See `docs/GROWTH.md` for the growth loop. See `docs/LAUNCH.md` for Kalshi/Polyma
 
 External tape (no login): `/wire` and `GET /api/wire/venues`.
 
+Season book: `npm run sports` refreshes `data/sports-catalog.json` from the ESPN public scoreboard (NFL weeks 1–18 + postseason, NBA dates, MLB dates). Invented award/news books live in `src/lib/sports.ts`. Friend leagues can run a **weekly lock-in card** through an NFL, NBA, or MLB season — points vs `pLock`, not cash. Sparkboard is not a sportsbook.
+
 ## What you can click
 
 | Route | What it is |
 | --- | --- |
 | `/` | The **fly** — featured book, tape, morning call sheet, board |
 | `/call-sheet` | Politics desk printout (2026 midterms) |
+| `/markets` | Desk books by category |
 | `/markets/new` | Market builder (prior + liquidity `b`) |
 | `/markets/[id]` | Ticket against the LMSR maker |
-| `/leagues` | Public Square + invite desks (try `DESK12`) |
+| `/sports` | NFL / NBA / MLB season book + Super Bowl LXI MVP |
+| `/learn` | Deep paths: LMSR, integrity, weekly card, venues |
+| `/leagues` | Public Square + invite desks (try `DESK12`); optional NFL/NBA/MLB weekly card |
 | `/leaderboard` | Integrity-adjusted PnL |
 | `/math` | Interactive LMSR sandbox |
 | `/integrity` | Why coin-flip farms do not rank |
+| `/wire` | Public Kalshi / Polymarket tape |
 
 Spawn a desk in the top bar, or trade as Mira / Cole / Anjali.
 

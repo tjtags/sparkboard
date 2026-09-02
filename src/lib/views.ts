@@ -1,8 +1,8 @@
-import { PUBLIC_LEAGUE_ID } from "./constants";
+import { DESK_USER_ID, PUBLIC_LEAGUE_ID } from "./constants";
 import { devSwitcherEnabled } from "./flags";
 import { boardPnL, integrityOf, markToMarket, realizedAndOpen } from "./engine";
 import { prices } from "./lmsr";
-import type { IntegrityReport, Market, State, User } from "./types";
+import type { Category, IntegrityReport, Market, State, User } from "./types";
 
 export type PricedMarket = Market & {
   prices: number[];
@@ -17,11 +17,28 @@ export function priceMarket(s: State, m: Market): PricedMarket {
   };
 }
 
+export function isCatalogSport(m: Market) {
+  return m.category === "sports" && m.createdBy === DESK_USER_ID && !m.featured;
+}
+
 export function flyMarkets(s: State, leagueId = PUBLIC_LEAGUE_ID): PricedMarket[] {
   return s.markets
-    .filter((m) => m.leagueId === leagueId && m.status !== "resolved")
+    .filter((m) => m.leagueId === leagueId && m.status !== "resolved" && !isCatalogSport(m))
     .sort((a, b) => Number(b.featured) - Number(a.featured) || b.createdAt.localeCompare(a.createdAt))
     .map((m) => priceMarket(s, m));
+}
+
+export function booksByCategory(
+  s: State,
+  opts: { category?: Category | "all"; sport?: Market["sport"]; leagueId?: string } = {},
+) {
+  const leagueId = opts.leagueId ?? PUBLIC_LEAGUE_ID;
+  return s.markets
+    .filter((m) => m.leagueId === leagueId && m.status !== "resolved")
+    .filter((m) => (opts.category && opts.category !== "all" ? m.category === opts.category : true))
+    .filter((m) => (opts.sport ? m.sport === opts.sport : true))
+    .sort((a, b) => a.closesAt.localeCompare(b.closesAt))
+    .map((m) => ({ ...m, prices: prices(m.q, m.b, m.pi) }));
 }
 
 export function callSheet(s: State): PricedMarket[] {

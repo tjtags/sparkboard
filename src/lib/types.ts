@@ -35,6 +35,8 @@ export type League = {
   createdAt: string;
   cardMode?: CardMode;
   cardPool?: CardPool;
+  /** nfl weekly card through the season — play-money points, not a sportsbook */
+  sportSeason?: "nfl" | "nba" | "mlb";
 };
 
 export type Membership = {
@@ -56,6 +58,8 @@ export type Market = {
   description: string;
   resolutionCriteria: string;
   category: Category;
+  sport?: "nfl" | "nba" | "mlb" | "other";
+  tags?: string[];
   featured: boolean;
   callSheet: boolean;
   outcomes: Outcome[];

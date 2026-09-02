@@ -5,15 +5,21 @@ import { TradeTicket } from "@/components/TradeTicket";
 import { formatSparks, formatPct, relative } from "@/lib/format";
 import { costToPrice, maxLoss } from "@/lib/lmsr";
 import { actorId } from "@/lib/http";
-import { loadState } from "@/lib/store";
+import { ensureMarketById } from "@/lib/sports";
+import { loadState, mutate } from "@/lib/store";
 import { currentUser, priceMarket, tape } from "@/lib/views";
 
 export const dynamic = "force-dynamic";
 
 export default async function MarketPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const s = await loadState();
-  const raw = s.markets.find((m) => m.id === id);
+  let s = await loadState();
+  let raw = s.markets.find((m) => m.id === id);
+  if (!raw) {
+    raw = await mutate((state) => ensureMarketById(state, id));
+    s = await loadState();
+    raw = s.markets.find((m) => m.id === id) ?? raw;
+  }
   if (!raw) notFound();
   const market = priceMarket(s, raw);
   const me = currentUser(s, (await actorId()) ?? undefined);
@@ -37,7 +43,10 @@ export default async function MarketPage({ params }: { params: Promise<{ id: str
       <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
         <div>
           <Kicker>
-            {market.category} · b={market.b.toLocaleString()} · max loss ✦
+            {market.category}
+            {market.sport ? ` · ${market.sport}` : ""}
+            {market.tags?.length ? ` · ${market.tags.join(" ")}` : ""} · b=
+            {market.b.toLocaleString()} · max loss ✦
             {formatSparks(maxLoss(market.b, market.outcomes.length))}
           </Kicker>
           <h1 className="mt-2 text-3xl leading-tight tracking-tight">{market.question}</h1>

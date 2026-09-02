@@ -1,30 +1,10 @@
 import { EngineError, getLeague, membership, outcomeIndex } from "./engine";
+import { isoWeekKey, weekBounds } from "./lockin-week";
 import { prices } from "./lmsr";
+import { inSportWeek } from "./sports";
 import type { LockInPick, Market, State } from "./types";
 
-export function isoWeekKey(d = new Date()): string {
-  const date = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
-  const day = date.getUTCDay() || 7;
-  date.setUTCDate(date.getUTCDate() + 4 - day);
-  const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
-  const week = Math.ceil(((date.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
-  return `${date.getUTCFullYear()}-W${String(week).padStart(2, "0")}`;
-}
-
-export function weekBounds(week: string) {
-  const [ys, ws] = week.split("-W");
-  const y = Number(ys);
-  const w = Number(ws);
-  const jan4 = new Date(Date.UTC(y, 0, 4));
-  const day = jan4.getUTCDay() || 7;
-  const monday = new Date(jan4);
-  monday.setUTCDate(jan4.getUTCDate() - day + 1 + (w - 1) * 7);
-  monday.setUTCHours(0, 0, 0, 0);
-  const sunday = new Date(monday);
-  sunday.setUTCDate(monday.getUTCDate() + 6);
-  sunday.setUTCHours(23, 59, 59, 999);
-  return { startsAt: monday.toISOString(), locksAt: sunday.toISOString() };
-}
+export { isoWeekKey, weekBounds };
 
 function nid(prefix: string) {
   return `${prefix}_${crypto.randomUUID().replace(/-/g, "").slice(0, 10)}`;
@@ -34,8 +14,11 @@ export function cardEligible(m: Market) {
   return m.status === "open" && m.category !== "meta" && m.id !== "mkt_coinflip";
 }
 
-export function cardPool(s: State, leagueId: string): Market[] {
+export function cardPool(s: State, leagueId: string, now = new Date()): Market[] {
   const league = getLeague(s, leagueId);
+  if (league.sportSeason) {
+    return s.markets.filter((m) => cardEligible(m) && inSportWeek(m, league.sportSeason!, now));
+  }
   const pool = league.cardPool ?? (league.kind === "friends" ? "league+public" : "league");
   return s.markets.filter((m) => {
     if (!cardEligible(m)) return false;

@@ -224,6 +224,7 @@ export function createLeague(
   userId: string,
   name: string,
   blurb: string,
+  opts?: { sportSeason?: League["sportSeason"] },
 ): League {
   getUser(s, userId);
   const slug = name
@@ -242,7 +243,8 @@ export function createLeague(
     blurb: blurb.trim().slice(0, 160) || "A private desk.",
     inviteCode: randomInvite(new Set(s.leagues.map((l) => l.inviteCode).filter(Boolean) as string[])),
     cardMode: "points",
-    cardPool: "league+public",
+    cardPool: opts?.sportSeason ? "league+public" : "league+public",
+    sportSeason: opts?.sportSeason,
     startingBankroll: STARTING_BANKROLL,
     minUniqueTraders: MIN_UNIQUE.friends,
     createdBy: userId,

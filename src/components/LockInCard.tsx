@@ -65,7 +65,10 @@ export function LockInCard({
   return (
     <form onSubmit={submit} className="hairline rounded-lg p-4 text-sm">
       <div className="text-[11px] uppercase tracking-[0.2em] text-copper">Lock a card</div>
-      <p className="mt-1 text-muted">One book per week. Not a bet — points vs the price you locked.</p>
+      <p className="mt-1 text-muted">
+        One book per week, through the season. Not a bet — points vs the price you locked.
+        Sparks do not move.
+      </p>
       <select
         className="field mt-3"
         value={marketId}

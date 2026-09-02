@@ -42,9 +42,26 @@ export default async function LeaguePage({ params }: { params: Promise<{ id: str
 
   return (
     <Shell here="/leagues">
-      <Kicker>{league.kind} league · week {week}</Kicker>
+      <Kicker>
+        {league.kind} league · week {week}
+        {league.sportSeason ? ` · ${league.sportSeason.toUpperCase()} SEASON` : ""}
+      </Kicker>
       <h1 className="mt-2 text-3xl tracking-tight">{league.name}</h1>
       <p className="mt-2 max-w-xl text-muted">{league.blurb}</p>
+      {league.sportSeason && (
+        <p className="mt-3 max-w-xl text-[13px] text-copper">
+          Weekly lock-in through the {league.sportSeason.toUpperCase()} slate. One card a week
+          until the last game. Points, not cash. Not a sportsbook.{" "}
+          <Link href={`/sports?league=${league.sportSeason}`} className="text-spark">
+            Open this week&apos;s book →
+          </Link>
+        </p>
+      )}
+      {inLeague && league.sportSeason && !myPick && (
+        <p className="mt-3 text-[13px] text-warn">
+          No card this week. Lock one before the slate starts or you sit the week.
+        </p>
+      )}
 
       {inLeague && inviteUrl && (
         <div className="mt-6">

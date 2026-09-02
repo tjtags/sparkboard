@@ -31,6 +31,8 @@ function mkt(partial: Omit<Market, "q" | "status" | "createdAt" | "minUniqueTrad
     description: partial.description,
     resolutionCriteria: partial.resolutionCriteria,
     category: partial.category,
+    sport: partial.sport,
+    tags: partial.tags,
     featured: partial.featured,
     callSheet: partial.callSheet,
     outcomes: partial.outcomes,

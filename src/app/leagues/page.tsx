@@ -27,6 +27,7 @@ export default async function LeaguesPage() {
             <Link key={l.id} href={`/leagues/${l.id}`} className="hairline rounded-lg p-5 hover:bg-ink-2">
               <div className="text-[11px] uppercase tracking-[0.18em] text-copper">
                 {l.kind} · {n} desks
+                {l.sportSeason ? ` · ${l.sportSeason} season` : ""}
               </div>
               <h2 className="mt-2 text-xl tracking-tight">{l.name}</h2>
               <p className="mt-1 text-sm text-muted">{l.blurb}</p>
@@ -51,7 +52,20 @@ export default async function LeaguesPage() {
         <Kicker>Start a friends league</Kicker>
         <input name="name" required placeholder="League name" className="field" />
         <input name="blurb" placeholder="One-line desk culture" className="field" />
-        <button className="rounded-md bg-spark px-4 py-2 text-sm text-ink">Create league</button>
+        <select name="sportSeason" className="field">
+          <option value="">General desk</option>
+          <option value="nfl">NFL — weekly card through the season (play-money)</option>
+          <option value="nba">NBA — weekly card through the season (play-money)</option>
+          <option value="mlb">MLB — weekly card through the season (play-money)</option>
+        </select>
+        <p className="text-[11px] text-muted">
+          Season desks: every week each friend locks one moneyline from that week&apos;s
+          slate, through the last game. Points vs the price you locked, not cash. Not a
+          sportsbook. Sparks never leave the league.
+        </p>
+        <button className="border border-spark px-4 py-2 text-[11px] tracking-widest text-spark">
+          CREATE DESK
+        </button>
       </form>
     </Shell>
   );
