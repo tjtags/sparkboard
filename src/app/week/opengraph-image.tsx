@@ -1,6 +1,5 @@
 import { ImageResponse } from "next/og";
-import { loadState } from "@/lib/store";
-import { thisWeekSlate } from "@/lib/views";
+import { currentNflWeek, loadCatalog } from "@/lib/sports";
 
 export const runtime = "nodejs";
 export const revalidate = 60;
@@ -8,9 +7,11 @@ export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
 export default async function Og() {
-  const s = await loadState();
-  const { week, games } = thisWeekSlate(s);
-  const line = games[0]?.question ?? "Sunday card";
+  const week = currentNflWeek();
+  const games = loadCatalog().nfl.filter((g) => g.week === week);
+  const line = games[0]
+    ? `${games[0].away ?? "Away"} @ ${games[0].home ?? "Home"}`
+    : "Sunday card";
   return new ImageResponse(
     (
       <div
@@ -26,9 +27,35 @@ export default async function Og() {
           fontFamily: "ui-monospace, monospace",
         }}
       >
-        <div style={{ fontSize: 22, letterSpacing: 6, color: "#7cffcb" }}>SPARKBOARD · WEEK {week}</div>
-        <div style={{ fontSize: 40, lineHeight: 1.2, maxWidth: 1000 }}>{line}</div>
-        <div style={{ fontSize: 22, color: "#6b7c8f" }}>/join/SUNDAY · play-money · not a sportsbook</div>
+        <div
+          style={{
+            display: "flex",
+            fontSize: 22,
+            letterSpacing: 6,
+            color: "#7cffcb",
+          }}
+        >
+          SPARKBOARD · WEEK {week}
+        </div>
+        <div
+          style={{
+            display: "flex",
+            fontSize: 40,
+            lineHeight: 1.2,
+            maxWidth: 1000,
+          }}
+        >
+          {line}
+        </div>
+        <div
+          style={{
+            display: "flex",
+            fontSize: 22,
+            color: "#6b7c8f",
+          }}
+        >
+          /join/SUNDAY · play-money · not a sportsbook
+        </div>
       </div>
     ),
     { ...size },
