@@ -4,16 +4,11 @@ import { HudClock } from "./HudClock";
 
 const LINKS = [
   ["/", "FLY"],
+  ["/week", "WEEK"],
   ["/call-sheet", "SHEET"],
-  ["/wire", "VENUES"],
-  ["/markets", "BOOK"],
   ["/sports", "SPORT"],
   ["/leagues", "DESKS"],
-  ["/leaderboard", "RANK"],
-  ["/inbox", "COMMS"],
   ["/learn", "LEARN"],
-  ["/math", "LMSR"],
-  ["/integrity", "GATE"],
 ] as const;
 
 export function Nav({ here }: { here: string }) {

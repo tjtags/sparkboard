@@ -9,13 +9,13 @@ export const dynamic = "force-dynamic";
 export default async function WirePage() {
   const snap = await pullVenues("all");
   return (
-    <Shell here="/call-sheet">
+    <Shell here="/wire">
       <Kicker>EXTERNAL TAPE // READ-ONLY</Kicker>
       <h1 className="mt-2 text-3xl tracking-tight">Kalshi + Polymarket</h1>
       <p className="mt-2 max-w-2xl text-[13px] text-muted">
-        Public REST, no login. These are <em>their</em> books, not Sparkboard markets. We
-        do not route orders. Prices are implied probabilities from the venue. Pulled{" "}
-        {snap.at.slice(11, 19)}Z.
+        Public REST, no login. These are <em>their</em> books. We do not route orders.
+        Click OPEN to list a play-money LMSR with their yes as the prior — settlement stays
+        ours. Pulled {snap.at.slice(11, 19)}Z.
       </p>
       {snap.errors.length > 0 && (
         <p className="mt-3 text-[12px] text-no">
@@ -29,6 +29,7 @@ export default async function WirePage() {
             <th>CONTRACT</th>
             <th>YES</th>
             <th>VOL 24H</th>
+            <th></th>
           </tr>
         </thead>
         <tbody>
@@ -44,6 +45,18 @@ export default async function WirePage() {
               <td className="tabular text-spark">{q.yes != null ? formatPct(q.yes, 1) : "—"}</td>
               <td className="tabular text-muted">
                 {q.volume24h != null ? Math.round(q.volume24h).toLocaleString() : "—"}
+              </td>
+              <td className="pl-2">
+                <form action="/api/wire/list" method="post">
+                  <input type="hidden" name="venue" value={q.venue} />
+                  <input type="hidden" name="id" value={q.id} />
+                  <input type="hidden" name="title" value={q.title} />
+                  <input type="hidden" name="category" value={q.category} />
+                  <input type="hidden" name="url" value={q.url} />
+                  <input type="hidden" name="yes" value={q.yes ?? ""} />
+                  <input type="hidden" name="closesAt" value={q.closesAt ?? ""} />
+                  <button className="text-[10px] tracking-widest text-spark">OPEN</button>
+                </form>
               </td>
             </tr>
           ))}

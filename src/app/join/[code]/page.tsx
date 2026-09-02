@@ -27,6 +27,9 @@ export default async function JoinPage({ params }: { params: Promise<{ code: str
       <p className="mt-2 max-w-xl text-muted">
         Play-money. You get ✦1,000,000 in this league. Sparks never leave it. This is a
         game, not gambling.
+        {league.sportSeason
+          ? ` ${league.sportSeason.toUpperCase()} season desk: one lock-in a week through the last game. Points, not cash.`
+          : ""}
       </p>
       {me && inLeague && (
         <p className="mt-6 text-yes">You are already in this desk. Open the league board.</p>

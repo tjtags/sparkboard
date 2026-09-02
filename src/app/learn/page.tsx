@@ -79,9 +79,9 @@ const PATHS = [
     id: "07",
     title: "Weekly card",
     blurb: "One lock-in a week with friends, through the last game.",
-    href: "/leagues",
+    href: "/week",
     steps: [
-      "Create a friends league and pick NFL, NBA, or MLB season.",
+      "Open /week or /join/SUNDAY. One lock-in from this week's slate, through the last game.",
       "Every ISO week (NFL: that week's slate) you lock one outcome. pLock is the LMSR price at confirm.",
       "Hit scores +(1 − pLock). Miss scores −pLock. Cash does not move. Points, not elimination.",
       "Play until the slate ends. Invite the group with /join/CODE. Sparks still never leave the league.",

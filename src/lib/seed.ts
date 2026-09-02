@@ -4,6 +4,8 @@ import {
   MIN_UNIQUE,
   PUBLIC_LEAGUE_ID,
   STARTING_BANKROLL,
+  SUNDAY_INVITE,
+  SUNDAY_LEAGUE_ID,
 } from "./constants";
 import { applyTrade, joinLeague } from "./engine";
 import { normalize } from "./lmsr";
@@ -107,6 +109,21 @@ export function buildSeed(): State {
       cardMode: "points",
       cardPool: "league+public",
     },
+    {
+      id: SUNDAY_LEAGUE_ID,
+      name: "Sunday",
+      slug: "sunday",
+      kind: "friends",
+      blurb: "One lock-in a week through the NFL slate. Points, not cash. Text /join/SUNDAY.",
+      inviteCode: SUNDAY_INVITE,
+      startingBankroll: STARTING_BANKROLL,
+      minUniqueTraders: MIN_UNIQUE.friends,
+      createdBy: "user_anjali",
+      createdAt: T0,
+      cardMode: "points",
+      cardPool: "league+public",
+      sportSeason: "nfl",
+    },
   ];
 
   for (const u of s.users) {
@@ -115,6 +132,7 @@ export function buildSeed(): State {
   }
   for (const id of ["user_anjali", "user_mira", "user_cole", "user_reed"]) {
     joinLeague(s, id, "league_desk12", "DESK12");
+    joinLeague(s, id, SUNDAY_LEAGUE_ID, SUNDAY_INVITE);
   }
 
   const close = "2026-11-03T23:59:00.000Z";

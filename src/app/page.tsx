@@ -2,18 +2,20 @@ import Link from "next/link";
 import { Bar, IntegrityChip, Kicker, Percentile, SparkAmt } from "@/components/Bits";
 import { MarketCard } from "@/components/MarketCard";
 import { Shell } from "@/components/Shell";
-import { PUBLIC_LEAGUE_ID } from "@/lib/constants";
+import { PUBLIC_LEAGUE_ID, SUNDAY_INVITE } from "@/lib/constants";
 import { formatPct, relative } from "@/lib/format";
 import { costToPrice } from "@/lib/lmsr";
 import { loadState } from "@/lib/store";
-import { callSheet, flyMarkets, leaderboard, tape } from "@/lib/views";
+import { callSheet, deskFly, leaderboard, tape, thisWeekSlate } from "@/lib/views";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
   const s = await loadState();
-  const fly = flyMarkets(s);
-  const headline = fly.find((m) => m.featured) ?? fly[0];
+  const fly = deskFly(s);
+  const { week, games } = thisWeekSlate(s);
+  const headline =
+    fly.find((m) => m.id === "mkt_sb-lxi-mvp") ?? fly.find((m) => m.featured) ?? fly[0];
   const sheet = callSheet(s).slice(0, 8);
   const board = leaderboard(s, PUBLIC_LEAGUE_ID).slice(0, 8);
   const prints = tape(s, undefined, 10);
@@ -31,7 +33,7 @@ export default async function HomePage() {
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1.5fr)_minmax(280px,0.9fr)]">
         <section className="tick border border-line bg-ink/70 p-5">
-          <Kicker>HEAD // PUBLIC SQUARE</Kicker>
+          <Kicker>HEAD // SUPER BOWL LXI</Kicker>
           {headline && (
             <Link href={`/markets/${headline.id}`} className="mt-3 block">
               <h1 className="text-3xl leading-tight tracking-tight text-paper md:text-4xl">
@@ -39,7 +41,9 @@ export default async function HomePage() {
               </h1>
               <div className="mt-5 flex flex-wrap items-end gap-8">
                 <div>
-                  <div className="text-[10px] tracking-widest text-muted">{headline.outcomes[0].name}</div>
+                  <div className="text-[10px] tracking-widest text-muted">
+                    {headline.outcomes[0].name}
+                  </div>
                   <div className="glow tabular text-7xl text-spark md:text-8xl">
                     {formatPct(headline.prices[0], 0)}
                   </div>
@@ -62,6 +66,31 @@ export default async function HomePage() {
               </div>
             </Link>
           )}
+
+          <div className="mt-8 border-t border-line pt-4">
+            <div className="flex items-center justify-between">
+              <Kicker>WEEK {week} SLATE</Kicker>
+              <Link href="/week" className="text-[11px] tracking-widest text-spark">
+                LOCK A CARD →
+              </Link>
+            </div>
+            <ul className="mt-2 font-mono text-[12px]">
+              {games.slice(0, 8).map((g) => (
+                <li key={g.id} className="flex justify-between gap-3 py-1 text-muted">
+                  <Link href={`/markets/${g.id}`} className="hover:text-spark">
+                    {g.question.replace(/^Does /, "").replace(/\?$/, "")}
+                  </Link>
+                  <span className="tabular text-spark">{formatPct(g.prices[0] ?? 0, 0)}</span>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-3 text-[11px] text-muted">
+              Play-money. Invite{" "}
+              <Link href={`/join/${SUNDAY_INVITE}`} className="text-mag">
+                /join/{SUNDAY_INVITE}
+              </Link>
+            </p>
+          </div>
 
           <div className="mt-8 border-t border-line pt-4">
             <Kicker>TAPE</Kicker>
@@ -123,7 +152,7 @@ export default async function HomePage() {
       </div>
 
       <section className="mt-6">
-        <Kicker>OPEN BOOKS</Kicker>
+        <Kicker>DESK BOOKS</Kicker>
         <div className="mt-3 grid gap-3 md:grid-cols-2">
           {fly.map((m) => (
             <MarketCard key={m.id} market={m} />

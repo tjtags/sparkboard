@@ -61,6 +61,14 @@ export async function Shell({
         <a href="/learn" className="hover:text-spark">
           LEARN
         </a>
+        {" · "}
+        <a href="/wire" className="hover:text-spark">
+          VENUES
+        </a>
+        {" · "}
+        <a href="/math" className="hover:text-spark">
+          LMSR
+        </a>
       </footer>
     </div>
   );

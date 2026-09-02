@@ -51,7 +51,8 @@ Season book: `npm run sports` refreshes `data/sports-catalog.json` from the ESPN
 
 | Route | What it is |
 | --- | --- |
-| `/` | The **fly** — featured book, tape, morning call sheet, board |
+| `/` | The **fly** — Super Bowl LXI, this week's NFL slate, call sheet |
+| `/week` | Sendable Sunday card · invite `SUNDAY` |
 | `/call-sheet` | Politics desk printout (2026 midterms) |
 | `/markets` | Desk books by category |
 | `/markets/new` | Market builder (prior + liquidity `b`) |
@@ -66,7 +67,7 @@ Season book: `npm run sports` refreshes `data/sports-catalog.json` from the ESPN
 | `/forecasts` | Board-eligible Public Square tape (JSON/CSV at `/api/public/forecasts`) |
 | `/legal` | Play-money terms and privacy |
 
-Spawn a desk in the top bar, or trade as Mira / Cole / Anjali.
+Share `/join/SUNDAY` for the weekly NFL desk. Spawn a desk in the top bar, or trade as Mira / Cole / Anjali. On `/wire`, OPEN lists a play-money book with the venue yes as prior.
 
 ## Rules of the game
 

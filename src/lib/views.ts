@@ -2,6 +2,7 @@ import { DESK_USER_ID, PUBLIC_LEAGUE_ID } from "./constants";
 import { devSwitcherEnabled } from "./flags";
 import { boardPnL, integrityOf, markToMarket, realizedAndOpen } from "./engine";
 import { prices } from "./lmsr";
+import { currentNflWeek } from "./sports";
 import type { Category, IntegrityReport, Market, State, User } from "./types";
 
 export type PricedMarket = Market & {
@@ -39,6 +40,31 @@ export function booksByCategory(
     .filter((m) => (opts.sport ? m.sport === opts.sport : true))
     .sort((a, b) => a.closesAt.localeCompare(b.closesAt))
     .map((m) => ({ ...m, prices: prices(m.q, m.b, m.pi) }));
+}
+
+export function cheapPrice(m: Market) {
+  return { ...m, prices: prices(m.q, m.b, m.pi) };
+}
+
+export function thisWeekSlate(s: State, now = new Date()) {
+  const week = currentNflWeek(now);
+  const games = s.markets
+    .filter(
+      (m) =>
+        m.status === "open" &&
+        m.sport === "nfl" &&
+        (m.tags ?? []).includes(`week-${week}`),
+    )
+    .sort((a, b) => a.closesAt.localeCompare(b.closesAt))
+    .map(cheapPrice);
+  const mvp = s.markets.find((m) => m.id === "mkt_sb-lxi-mvp");
+  return { week, games, mvp: mvp ? cheapPrice(mvp) : undefined };
+}
+
+export function deskFly(s: State, leagueId = PUBLIC_LEAGUE_ID, limit = 6): PricedMarket[] {
+  return flyMarkets(s, leagueId)
+    .filter((m) => m.featured || m.callSheet || m.category === "politics" || m.category === "macro")
+    .slice(0, limit);
 }
 
 export function callSheet(s: State): PricedMarket[] {

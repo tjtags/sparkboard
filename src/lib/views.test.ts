@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { DESK_USER_ID } from "./constants";
+import { DESK_USER_ID, SUNDAY_LEAGUE_ID } from "./constants";
 import { buildSeed } from "./seed";
 import { ensureSportsMarkets } from "./sports";
-import { currentUser, flyMarkets, isCatalogSport, leaderboard } from "./views";
+import { currentUser, deskFly, flyMarkets, isCatalogSport, leaderboard, thisWeekSlate } from "./views";
 
 describe("currentUser", () => {
   it("does not default to Mira", () => {
@@ -40,5 +40,16 @@ describe("currentUser", () => {
     expect(fly.some((m) => m.id === "mkt_sb-lxi-mvp")).toBe(true);
     expect(fly.every((m) => !isCatalogSport(m))).toBe(true);
     expect(s.markets.some((m) => m.createdBy === DESK_USER_ID && m.category === "sports")).toBe(true);
+  });
+
+  it("puts Super Bowl MVP on the desk fly and lists week-1 moneylines", () => {
+    const s = buildSeed();
+    ensureSportsMarkets(s, 400);
+    const fly = deskFly(s);
+    expect(fly.some((m) => m.id === "mkt_sb-lxi-mvp")).toBe(true);
+    const slate = thisWeekSlate(s, new Date("2026-09-10T18:00:00Z"));
+    expect(slate.week).toBe(1);
+    expect(slate.games.length).toBeGreaterThan(0);
+    expect(s.leagues.some((l) => l.id === SUNDAY_LEAGUE_ID && l.sportSeason === "nfl")).toBe(true);
   });
 });
