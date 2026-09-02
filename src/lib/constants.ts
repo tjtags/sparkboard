@@ -20,3 +20,5 @@ export const CLUSTER_VOLUME = 0.6;
 
 export const PUBLIC_LEAGUE_ID = "league_public";
 export const DESK_USER_ID = "user_desk";
+/** Public Square proposed resolves sit this long before payout. */
+export const CHALLENGE_MS = 24 * 60 * 60 * 1000;

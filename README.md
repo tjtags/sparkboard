@@ -63,6 +63,8 @@ Season book: `npm run sports` refreshes `data/sports-catalog.json` from the ESPN
 | `/math` | Interactive LMSR sandbox |
 | `/integrity` | Why coin-flip farms do not rank |
 | `/wire` | Public Kalshi / Polymarket tape |
+| `/forecasts` | Board-eligible Public Square tape (JSON/CSV at `/api/public/forecasts`) |
+| `/legal` | Play-money terms and privacy |
 
 Spawn a desk in the top bar, or trade as Mira / Cole / Anjali.
 

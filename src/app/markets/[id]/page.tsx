@@ -4,6 +4,7 @@ import { Shell } from "@/components/Shell";
 import { TradeTicket } from "@/components/TradeTicket";
 import { formatSparks, formatPct, relative } from "@/lib/format";
 import { costToPrice, maxLoss } from "@/lib/lmsr";
+import { canChallenge, canResolve } from "@/lib/engine";
 import { actorId } from "@/lib/http";
 import { ensureMarketById } from "@/lib/sports";
 import { loadState, mutate } from "@/lib/store";
@@ -127,7 +128,32 @@ export default async function MarketPage({ params }: { params: Promise<{ id: str
           ) : (
             <p className="text-muted">Join this league to trade.</p>
           )}
-          <ResolveBox marketId={market.id} creatorId={market.createdBy} outcomes={market.outcomes} />
+          {market.status === "closed" && market.pendingOutcomeId && (
+            <div className="hairline rounded-lg p-4 text-[13px]">
+              <Kicker>CHALLENGE WINDOW</Kicker>
+              <p className="mt-2">
+                Oracle proposed{" "}
+                <span className="text-spark">
+                  {market.outcomes.find((o) => o.id === market.pendingOutcomeId)?.name}
+                </span>
+                . Payout waits until {market.challengeUntil?.slice(0, 16).replace("T", " ")}Z
+                {market.challengedBy ? " — challenged, waiting on the desk." : "."}
+              </p>
+              {market.resolutionSourceUrl && (
+                <p className="mt-1 text-muted">
+                  Source: {market.resolutionSourceUrl}
+                </p>
+              )}
+            </div>
+          )}
+          <ResolveBox
+            marketId={market.id}
+            outcomes={market.outcomes}
+            status={market.status}
+            canOracle={Boolean(me && canResolve(s, me, market))}
+            canChallenge={Boolean(me && canChallenge(s, me, market))}
+            pending={Boolean(market.pendingOutcomeId)}
+          />
           <div className="text-[12px] leading-relaxed text-muted">
             {market.integrity.reasons.map((r) => (
               <p key={r}>{r}</p>
@@ -141,30 +167,64 @@ export default async function MarketPage({ params }: { params: Promise<{ id: str
 
 function ResolveBox({
   marketId,
-  creatorId,
   outcomes,
+  status,
+  canOracle,
+  canChallenge,
+  pending,
 }: {
   marketId: string;
-  creatorId: string;
   outcomes: { id: string; name: string }[];
+  status: string;
+  canOracle: boolean;
+  canChallenge: boolean;
+  pending: boolean;
 }) {
-  void creatorId;
+  if (status === "resolved") {
+    return <p className="text-[12px] text-muted">Resolved. See the log on this book.</p>;
+  }
   return (
-    <form action="/api/resolve" method="post" className="hairline rounded-lg p-4 text-sm">
-      <div className="text-[11px] uppercase tracking-[0.2em] text-copper">Oracle</div>
-      <p className="mt-1 text-muted">Creator or desk can resolve. Demo only.</p>
-      <input type="hidden" name="marketId" value={marketId} />
-      <select
-        name="outcomeId"
-        className="mt-2 w-full rounded-md border border-line bg-ink-2 px-2 py-1"
-      >
-        {outcomes.map((o) => (
-          <option key={o.id} value={o.id}>
-            {o.name}
-          </option>
-        ))}
-      </select>
-      <button className="mt-2 text-copper">Resolve</button>
-    </form>
+    <div className="space-y-3">
+      {canOracle && (
+        <form action="/api/resolve" method="post" className="hairline rounded-lg p-4 text-sm">
+          <div className="text-[11px] uppercase tracking-[0.2em] text-copper">Oracle</div>
+          <p className="mt-1 text-muted">
+            Public Square: propose, then 24h challenge, then payout. Friend desks settle now.
+            Not copied from Kalshi or Polymarket.
+          </p>
+          <input type="hidden" name="marketId" value={marketId} />
+          <select
+            name="outcomeId"
+            className="mt-2 w-full rounded-md border border-line bg-ink-2 px-2 py-1"
+          >
+            {outcomes.map((o) => (
+              <option key={o.id} value={o.id}>
+                {o.name}
+              </option>
+            ))}
+          </select>
+          <input
+            name="sourceUrl"
+            placeholder="Source URL"
+            className="mt-2 w-full rounded-md border border-line bg-ink-2 px-2 py-1"
+          />
+          <button className="mt-2 text-copper">{pending ? "Re-propose" : "Propose resolve"}</button>
+        </form>
+      )}
+      {canChallenge && (
+        <form action="/api/resolve/challenge" method="post" className="hairline rounded-lg p-4 text-sm">
+          <div className="text-[11px] uppercase tracking-[0.2em] text-warn">Challenge</div>
+          <p className="mt-1 text-muted">You traded this book. Flag the proposal before the window closes.</p>
+          <input type="hidden" name="marketId" value={marketId} />
+          <button className="mt-2 text-warn">Challenge</button>
+        </form>
+      )}
+      {!canOracle && !canChallenge && status === "open" && (
+        <p className="text-[12px] text-muted">
+          Public Square payouts wait on the oracle desk and a 24h challenge window. Friend-league
+          creators resolve their own books.
+        </p>
+      )}
+    </div>
   );
 }

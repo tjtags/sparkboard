@@ -59,6 +59,13 @@ export default async function NewMarketPage({
             placeholder="Resolves from AP / official source on …"
           />
         </Field>
+        <Field label="Source URL (optional)">
+          <input
+            name="resolutionSourceUrl"
+            className="field"
+            placeholder="https://…"
+          />
+        </Field>
         <div className="grid grid-cols-2 gap-3">
           <Field label="Yes label">
             <input name="yes" defaultValue="Yes" className="field" />

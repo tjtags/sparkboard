@@ -1,20 +1,12 @@
-import { createHash, timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
+import { adminSecretOk } from "@/lib/admin";
 import { resetState } from "@/lib/store";
 
-function safeEq(a: string, b: string) {
-  const ha = createHash("sha256").update(a).digest();
-  const hb = createHash("sha256").update(b).digest();
-  return timingSafeEqual(ha, hb);
-}
-
 export async function POST(req: Request) {
-  const secret = process.env.SPARKBOARD_ADMIN_SECRET;
-  if (!secret) {
+  if (!process.env.SPARKBOARD_ADMIN_SECRET) {
     return NextResponse.json({ error: "reset disabled", code: "forbidden" }, { status: 401 });
   }
-  const got = req.headers.get("x-sparkboard-admin") ?? "";
-  if (!safeEq(secret, got)) {
+  if (!adminSecretOk(req)) {
     return NextResponse.json({ error: "forbidden", code: "forbidden" }, { status: 403 });
   }
   await resetState();

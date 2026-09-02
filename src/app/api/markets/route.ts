@@ -22,6 +22,7 @@ export async function POST(req: Request) {
         b: Number(form.get("b") || 40000),
         callSheet: form.get("callSheet") === "on",
         closesAt: new Date(closes + "T23:59:00.000Z").toISOString(),
+        resolutionSourceUrl: String(form.get("resolutionSourceUrl") ?? ""),
       }),
     );
     formRedirect(`/markets/${market.id}`);

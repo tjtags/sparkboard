@@ -1,9 +1,17 @@
 import { describe, expect, it } from "vitest";
-import { STARTING_BANKROLL } from "./constants";
-import { applyTrade, boardPnL, createMarket, createUser, integrityOf, resolveMarket } from "./engine";
-import { buildSeed } from "./seed";
-import { emptyState } from "./seed";
-import { joinLeague } from "./engine";
+import { CHALLENGE_MS, STARTING_BANKROLL } from "./constants";
+import {
+  applyTrade,
+  boardPnL,
+  challengeMarket,
+  createMarket,
+  createUser,
+  integrityOf,
+  joinLeague,
+  resolveMarket,
+  tickResolves,
+} from "./engine";
+import { buildSeed, emptyState } from "./seed";
 
 describe("seeded square", () => {
   it("House market clears the unique-trader gate", () => {
@@ -37,13 +45,50 @@ describe("seeded square", () => {
 
   it("claws farmed PnL off the board after a thin resolve", () => {
     const s = buildSeed();
-    resolveMarket(s, "user_desk", "mkt_coinflip", "o0");
+    const t0 = new Date("2026-09-02T12:00:00Z");
+    resolveMarket(s, "user_desk", "mkt_coinflip", "o0", { now: t0 });
+    expect(s.markets.find((m) => m.id === "mkt_coinflip")?.status).toBe("closed");
+    tickResolves(s, new Date(t0.getTime() + CHALLENGE_MS + 1000));
     const botte = boardPnL(s, "user_botte", "league_public");
     const echo = boardPnL(s, "user_echo", "league_public");
     expect(botte).toBeCloseTo(0, 0);
     expect(echo).toBeCloseTo(0, 0);
     const miraRaw = s.memberships.find((m) => m.userId === "user_mira" && m.leagueId === "league_public")!;
     expect(miraRaw.cash).toBeLessThan(STARTING_BANKROLL);
+  });
+});
+
+describe("oracle", () => {
+  it("blocks Public Square members from resolving", () => {
+    const s = buildSeed();
+    expect(() => resolveMarket(s, "user_mira", "mkt_house", "o0")).toThrow(/oracle/);
+  });
+
+  it("lets a friend-league creator settle immediately", () => {
+    const s = buildSeed();
+    resolveMarket(s, "user_anjali", "mkt_chat", "o1");
+    expect(s.markets.find((m) => m.id === "mkt_chat")?.status).toBe("resolved");
+    expect(s.markets.find((m) => m.id === "mkt_chat")?.resolvedBy).toBe("user_anjali");
+  });
+
+  it("blocks a friend-league member who did not create the book", () => {
+    const s = buildSeed();
+    expect(() => resolveMarket(s, "user_cole", "mkt_chat", "o0")).toThrow(/oracle/);
+  });
+
+  it("holds Public Square payout for 24h unless challenged", () => {
+    const s = buildSeed();
+    const t0 = new Date("2026-09-02T12:00:00Z");
+    resolveMarket(s, "user_desk", "mkt_house", "o0", { now: t0, sourceUrl: "https://ap.org" });
+    const house = s.markets.find((m) => m.id === "mkt_house")!;
+    expect(house.status).toBe("closed");
+    expect(house.pendingOutcomeId).toBe("o0");
+    expect(house.resolutionSourceUrl).toBe("https://ap.org");
+    expect(s.resolveEvents.some((e) => e.action === "propose" && e.marketId === "mkt_house")).toBe(true);
+    challengeMarket(s, "user_mira", "mkt_house", { now: new Date(t0.getTime() + 1000) });
+    expect(tickResolves(s, new Date(t0.getTime() + CHALLENGE_MS + 1000))).toBe(0);
+    expect(s.markets.find((m) => m.id === "mkt_house")?.status).toBe("closed");
+    expect(s.markets.find((m) => m.id === "mkt_house")?.challengedBy).toBe("user_mira");
   });
 });
 

@@ -1,5 +1,8 @@
+import { isOracleUser } from "./admin";
 import {
+  CHALLENGE_MS,
   DEFAULT_B,
+  DESK_USER_ID,
   MAX_B,
   MAX_MARKET_COST_FRAC,
   MAX_TRADE_CASH_FRAC,
@@ -29,6 +32,7 @@ import type {
   Market,
   Membership,
   Position,
+  ResolveEvent,
   State,
   Trade,
   User,
@@ -270,6 +274,7 @@ export function createMarket(
     featured?: boolean;
     callSheet?: boolean;
     closesAt: string;
+    resolutionSourceUrl?: string;
   },
 ): Market {
   getUser(s, userId);
@@ -302,6 +307,7 @@ export function createMarket(
     closesAt: input.closesAt,
     createdAt: now(),
     minUniqueTraders: league.minUniqueTraders,
+    resolutionSourceUrl: input.resolutionSourceUrl?.trim() || undefined,
   };
   s.markets.push(market);
   return market;
@@ -447,21 +453,39 @@ function upsertPosition(
   s.positions.push({ userId, marketId, outcomeId, shares, costBasis: costAmt });
 }
 
-export function resolveMarket(s: State, actorId: string, marketId: string, outcomeId: string) {
-  const actor = getUser(s, actorId);
-  const market = getMarket(s, marketId);
-  if (market.status === "resolved") throw new EngineError("resolved", "Already resolved");
-  const inLeague = s.memberships.some(
-    (m) => m.userId === actor.id && m.leagueId === market.leagueId,
-  );
-  const can = actor.system || actor.id === market.createdBy || inLeague;
-  if (!can) throw new EngineError("forbidden", "Join the league to resolve (demo oracle)");
+export function canResolve(s: State, actor: User, market: Market) {
+  if (isOracleUser(actor)) return true;
+  const league = getLeague(s, market.leagueId);
+  if (league.kind === "global") return false;
+  return actor.id === market.createdBy;
+}
+
+export function canChallenge(s: State, actor: User, market: Market, at = new Date()) {
+  if (market.status !== "closed" || !market.pendingOutcomeId) return false;
+  if (market.challengedBy) return false;
+  if (!market.challengeUntil || at.toISOString() >= market.challengeUntil) return false;
+  if (actor.id === market.proposedBy || actor.system) return false;
+  return s.trades.some((t) => t.marketId === market.id && t.userId === actor.id);
+}
+
+function logResolve(
+  s: State,
+  event: Omit<ResolveEvent, "id">,
+) {
+  s.resolveEvents ??= [];
+  s.resolveEvents.push({ id: nid("rsv"), ...event });
+}
+
+function settleMarket(s: State, market: Market, outcomeId: string, actorId: string, at: string) {
   outcomeIndex(market, outcomeId);
   const report = integrityOf(s, market.id);
   market.status = "resolved";
   market.resolvedOutcomeId = outcomeId;
-  market.resolvedAt = now();
+  market.resolvedAt = at;
+  market.resolvedBy = actorId;
   market.boardEligibleAtResolve = report.boardEligible;
+  market.pendingOutcomeId = undefined;
+  market.challengeUntil = undefined;
 
   const holders = s.positions.filter((p) => p.marketId === market.id);
   for (const pos of holders) {
@@ -476,6 +500,108 @@ export function resolveMarket(s: State, actorId: string, marketId: string, outco
     pick.status = hit ? "hit" : "miss";
     pick.edge = hit ? 1 - pick.pLock : -pick.pLock;
   }
-  s.updatedAt = market.resolvedAt;
+  logResolve(s, {
+    marketId: market.id,
+    actorId,
+    action: "finalize",
+    outcomeId,
+    at,
+  });
+  s.updatedAt = at;
+}
+
+function dueToFinalize(m: Market, at: Date) {
+  return (
+    m.status === "closed" &&
+    Boolean(m.pendingOutcomeId) &&
+    !m.challengedBy &&
+    Boolean(m.challengeUntil) &&
+    at.toISOString() >= m.challengeUntil!
+  );
+}
+
+export function hasDueResolves(s: State, at = new Date()) {
+  return s.markets.some((m) => dueToFinalize(m, at));
+}
+
+export function tickResolves(s: State, at = new Date()) {
+  let n = 0;
+  for (const market of s.markets) {
+    if (!dueToFinalize(market, at) || !market.pendingOutcomeId) continue;
+    settleMarket(s, market, market.pendingOutcomeId, market.proposedBy ?? DESK_USER_ID, at.toISOString());
+    n += 1;
+  }
+  return n;
+}
+
+export function resolveMarket(
+  s: State,
+  actorId: string,
+  marketId: string,
+  outcomeId: string,
+  opts?: { now?: Date; sourceUrl?: string; note?: string },
+) {
+  const actor = getUser(s, actorId);
+  const market = getMarket(s, marketId);
+  if (market.status === "resolved") throw new EngineError("resolved", "Already resolved");
+  if (!canResolve(s, actor, market)) {
+    throw new EngineError("forbidden", "Only the oracle desk or the creating desk can resolve");
+  }
+  outcomeIndex(market, outcomeId);
+  const at = opts?.now ?? new Date();
+  const stamp = at.toISOString();
+  if (opts?.sourceUrl?.trim()) market.resolutionSourceUrl = opts.sourceUrl.trim();
+
+  const league = getLeague(s, market.leagueId);
+  if (league.kind === "friends") {
+    logResolve(s, {
+      marketId: market.id,
+      actorId: actor.id,
+      action: "resolve",
+      outcomeId,
+      note: opts?.note,
+      at: stamp,
+    });
+    settleMarket(s, market, outcomeId, actor.id, stamp);
+    return market;
+  }
+
+  market.status = "closed";
+  market.pendingOutcomeId = outcomeId;
+  market.proposedBy = actor.id;
+  market.proposedAt = stamp;
+  market.challengeUntil = new Date(at.getTime() + CHALLENGE_MS).toISOString();
+  market.challengedBy = undefined;
+  market.challengedAt = undefined;
+  logResolve(s, {
+    marketId: market.id,
+    actorId: actor.id,
+    action: "propose",
+    outcomeId,
+    note: opts?.note,
+    at: stamp,
+  });
+  s.updatedAt = stamp;
+  return market;
+}
+
+export function challengeMarket(s: State, actorId: string, marketId: string, opts?: { now?: Date; note?: string }) {
+  const actor = getUser(s, actorId);
+  const market = getMarket(s, marketId);
+  const at = opts?.now ?? new Date();
+  if (!canChallenge(s, actor, market, at)) {
+    throw new EngineError("forbidden", "You cannot challenge this book");
+  }
+  market.challengedBy = actor.id;
+  market.challengedAt = at.toISOString();
+  logResolve(s, {
+    marketId: market.id,
+    actorId: actor.id,
+    action: "challenge",
+    outcomeId: market.pendingOutcomeId,
+    note: opts?.note,
+    at: market.challengedAt,
+  });
+  s.updatedAt = market.challengedAt;
   return market;
 }

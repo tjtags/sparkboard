@@ -48,7 +48,19 @@ export async function Shell({
       </div>
       <main className="mx-auto w-full max-w-7xl flex-1 px-3 py-6">{children}</main>
       <footer className="border-t border-line px-3 py-4 text-center text-[10px] tracking-[0.18em] text-muted">
-        SPARKBOARD · LMSR HANSON 2003 · MIT · NOT A FORECAST PRODUCT
+        SPARKBOARD · LMSR HANSON 2003 · MIT · PLAY-MONEY
+        {" · "}
+        <a href="/legal" className="hover:text-spark">
+          LEGAL
+        </a>
+        {" · "}
+        <a href="/forecasts" className="hover:text-spark">
+          FORECASTS
+        </a>
+        {" · "}
+        <a href="/learn" className="hover:text-spark">
+          LEARN
+        </a>
       </footer>
     </div>
   );

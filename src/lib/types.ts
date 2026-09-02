@@ -1,5 +1,6 @@
 export type LeagueKind = "global" | "friends";
 export type MarketStatus = "open" | "closed" | "resolved";
+export type ResolveAction = "propose" | "finalize" | "challenge" | "void" | "resolve";
 export type Category = "politics" | "sports" | "macro" | "culture" | "science" | "meta";
 export type AuthKind = "github" | "guest" | "email" | "seed" | "system";
 export type CardMode = "points" | "off";
@@ -69,6 +70,14 @@ export type Market = {
   status: MarketStatus;
   resolvedOutcomeId?: string;
   resolvedAt?: string;
+  resolvedBy?: string;
+  resolutionSourceUrl?: string;
+  pendingOutcomeId?: string;
+  proposedBy?: string;
+  proposedAt?: string;
+  challengeUntil?: string;
+  challengedBy?: string;
+  challengedAt?: string;
   createdBy: string;
   closesAt: string;
   createdAt: string;
@@ -150,6 +159,16 @@ export type DeskMessage = {
   at: string;
 };
 
+export type ResolveEvent = {
+  id: string;
+  marketId: string;
+  actorId: string;
+  action: ResolveAction;
+  outcomeId?: string;
+  note?: string;
+  at: string;
+};
+
 export type IntegrityReport = {
   marketId: string;
   uniqueTraders: number;
@@ -184,5 +203,6 @@ export type State = {
   joinProbes: JoinProbe[];
   emailChallenges: EmailChallenge[];
   messages: DeskMessage[];
+  resolveEvents: ResolveEvent[];
   updatedAt: string;
 };

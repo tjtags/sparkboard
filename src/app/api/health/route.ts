@@ -10,6 +10,8 @@ export async function GET() {
     auth: Boolean(process.env.AUTH_SECRET),
     github: Boolean(process.env.AUTH_GITHUB_ID),
     grok: Boolean(process.env.XAI_API_KEY),
+    resend: Boolean(process.env.RESEND_API_KEY),
+    admin: Boolean(process.env.SPARKBOARD_ADMIN_SECRET || process.env.SPARKBOARD_ADMIN_EMAIL),
     switcher: devSwitcherEnabled(),
   });
 }

@@ -7,6 +7,7 @@ import {
   head,
   put,
 } from "@vercel/blob";
+import { hasDueResolves, tickResolves } from "./engine";
 import { migrate } from "./migrate";
 import { buildSeed } from "./seed";
 import { ensureSportsMarkets } from "./sports";
@@ -36,8 +37,12 @@ function assertProdStore() {
 
 export async function loadState(): Promise<State> {
   assertProdStore();
-  if (storeKind() === "blob") return loadBlob();
-  return loadFile();
+  const s = storeKind() === "blob" ? await loadBlob() : await loadFile();
+  if (!hasDueResolves(s)) return s;
+  return mutate((st) => {
+    tickResolves(st);
+    return st;
+  });
 }
 
 export async function mutate<T>(fn: (s: State) => T): Promise<T> {

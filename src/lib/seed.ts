@@ -62,6 +62,7 @@ export function emptyState(): State {
     joinProbes: [],
     emailChallenges: [],
     messages: [],
+    resolveEvents: [],
     updatedAt: T0,
   };
 }

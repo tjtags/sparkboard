@@ -189,14 +189,14 @@ Each step is independently shippable. Do not skip 5.3.
 - Vercel Blob store, GitHub auto-deploy  
 - Venue connectors + `/wire`
 
-### Step B — Resolution (blocker for press)
+### Step B — Resolution (shipped)
 
-Today any league member can resolve. That is fine for Desk 12, fatal for Public Square.
+Public Square is oracle-only. Friend-league creators still settle their own books.
 
-1. Public Square: only `user_desk` + challenge window (24h).  
-2. Attach `resolutionCriteria` URL + timestamp.  
-3. Log `resolve` with actor.  
-4. Do not auto-copy Kalshi/Polymarket settlement without a human confirm.
+1. Public Square: `user_desk` / `SPARKBOARD_ADMIN_EMAIL` / `x-sparkboard-admin` proposes; **24h challenge**; then `tickResolves` pays.  
+2. `resolutionSourceUrl` on the book + propose form.  
+3. `resolveEvents[]` logs propose / challenge / finalize with actor.  
+4. Copy on the oracle box: we do not auto-copy Kalshi/Polymarket settlement.
 
 ### Step C — Coverage packs (product, not scrape)
 
@@ -216,12 +216,12 @@ Script: “propose pack from venue tape” (Grok + human). Never bulk-import par
 3. Keep guests invite-gated.  
 4. Custom domain (optional).
 
-### Step E — Data product
+### Step E — Data product (shipped, nightly dump later)
 
-1. `GET /api/public/forecasts` — Sparkboard board-eligible prices only.  
-2. `GET /api/public/venues` — already `/api/wire/venues`.  
-3. CSV dump nightly.  
-4. Terms: attribution required; no high-frequency scrape of *us* without a key.
+1. `GET /api/public/forecasts` — board-eligible Public Square prices. `?format=csv` for the dump.  
+2. `GET /api/wire/venues` — Kalshi + Polymarket public tape.  
+3. Human printout: `/forecasts`.  
+4. Terms: `/legal` — attribution required; no high-frequency scrape of us without asking.
 
 ### Step F — Org desk (first dollar)
 
@@ -233,13 +233,13 @@ Script: “propose pack from venue tape” (Grok + human). Never bulk-import par
 
 - [ ] `/join/DESK12` works for a stranger on production  
 - [ ] `GET /api/health` → `store:blob`, `switcher:false`, `auth:true`  
-- [ ] `/wire` shows Kalshi + Polymarket without keys  
-- [ ] Public Square resolve is restricted  
-- [ ] Privacy + game ToS (play-money, no prize)  
-- [ ] Integrity gates still on  
-- [ ] No SparkAmt on lock-in cards  
+- [x] `/wire` shows Kalshi + Polymarket without keys  
+- [x] Public Square resolve is restricted (oracle + 24h challenge)  
+- [x] Privacy + game ToS (play-money, no prize) — `/legal`  
+- [x] Integrity gates still on  
+- [x] No SparkAmt on lock-in cards  
 - [ ] Resend confirm works or is clearly “link printed”  
-- [ ] One journalist can quote the call sheet with a permalink  
+- [x] One journalist can quote the call sheet / `/forecasts` with a permalink  
 
 When those boxes are ticked, **launch the game**. Not the exchange.
 
