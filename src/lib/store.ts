@@ -19,6 +19,7 @@ const g = globalThis as unknown as { __sparkboard?: State };
 export type StoreKind = "file" | "blob";
 
 export function storeKind(): StoreKind {
+  if (process.env.SPARKBOARD_STORE === "file") return "file";
   if (process.env.BLOB_READ_WRITE_TOKEN || process.env.BLOB_STORE_ID) return "blob";
   return "file";
 }
